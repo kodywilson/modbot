@@ -1,3 +1,7 @@
+02222016 - Kody
+ - Updated README, .gitignore, and added collaboration guidelines.
+ - README includes mission statement and outline of the process I intend to follow.
+
 06152011 - TMN
  - Fixed line 112 of modbuff.inc for bard auras
  - Fixed typos in moddebuff, adrecast should be adspellrecast
