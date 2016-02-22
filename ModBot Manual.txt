@@ -1,0 +1,362 @@
+Jan 07 Updates:
+ - Check RevNotes.txt and wiki at http://www.macroquest2.com/wiki/index.php/ModBot
+
+July xx Updates:
+ - Added code to modheal.inc to better account for HoTs and when to / not to cast a hot and/or interrupt a "CH" type spell - Kroak
+ - Added code to modbuff.inc to allow for bard item swapping, needs more testing - Reilly
+ - Added code to moddebuff.inc to allow scripts to be tracked like a normal debuff (e.g. a debuff called script will now take note of the ADSpellDelayX=xxx variable and won't "re-script" on the same mob until duration has passed)
+ - Made a minor tweak to moddebuff.inc re: how quickly a spell would be recast (e.g. mez could wear off, while the caster is in the process of trying to re-mez) - reilly
+ - Added self buff checking so should a buff be dispelled / removed, the bot should attempt to recast the buff - Kroak - needs testing (I didn't even run this code but it was a simple one-liner /if statement in ModBuff.inc)
+ - Added code to better check during buff casting to further avoid WTF - Buff reports - needs testing
+ - Added code to cast cleric hammers during combat - Kroak - needs testing
+ - Added code to moddebuff.inc to and to INI files; ADSpellCastonResistX=<spell alias name(s)>, example below
+ - Added code to modheal.inc so healers don't try to heal cleric / wizzy type "pets" - needs a lot of testing
+
+ADSpellCastonResist example:
+[code]
+ADGem2=6
+ADSpell2=Entrance
+ADSpellFoci2=
+ADDurMod2=0
+ADSpellAlias2=mez
+ADAnnounce2=/bc
+ADSpellMinMana2=0
+ADSpellRecast2=3
+ADSpellCastonResist2=tash
+ADSpellDelay2=0
+ADTarCnt2=1
+ADTarType2=12
+ADTarBegHP2=200
+ADTarEndHP2=90
+
+ADGem3=2
+ADSpell3=Tashani
+ADSpellFoci3=
+ADDurMod3=0
+ADSpellAlias3=tash
+ADAnnounce3=/bc
+ADSpellMinMana3=0
+ADSpellRecast3=0
+ADSpellCastonResist3=
+ADSpellDelay3=0
+ADTarCnt3=0
+ADTarType3=0
+ADTarBegHP3=0
+ADTarEndHP3=0
+[/code]
+The bot should attempt to cast Entrance 3 times (per the recast setting), if the mob resists 3 times (keep in mind fizzles are treated like resists)
+it should then cast "tash" (the spell alias for Tashani), then attempt to recast Entrance, should it fail yet again (ie. 3 resists), it will move to the next mob or debuff
+
+
+
+WIP / Known Issues:
+ - Auto-Curing but this may take some time
+ - Need to add immunities list for Charming to stop attempted charming immune mobs
+ - May add some Mob avoidance options in playback / pull options to playback
+ - Plan to add pulling logic to mbwayplay
+ - May add options for AE Debuff spells to check / confirm distance before / while casting
+ - Plan to add buying logic to mbwayplay
+ - Need to get some code cleanup done but havn't had time
+ - Add in code to just "sell" gear noted as =Sell in Loot.INI
+
+How To:
+To use ModBot you must extract and place all included files from zip (all .mac and .inc files) into your MQ2 macro directory.
+From inside EQ, type /macro modbot
+This will build, if it doesn't exist, your MB_<toonname>.ini file, locate this file in your macro directory and open it
+For every component of the macro you want to use, increase the respective "count", if you want two heals, set AHCount=2, if you want 2 debuffs, set ADCount=2, etc and save the INI file
+Tab back over into EQ and re-run it (e.g /macro modbot).
+This will now populate your INI file again, open the INI file once more and "tweak" the newly created entries to fit your needs.  Save the INI file
+Tab back over into EQ and re-run it.
+Your bot should now be just that, a BOT and will listen to your every command (assuming you are the master).
+
+Example commands
+/bc Bob follow me [This tells bob and only bob to follow me]
+/bc cast dd [this tells every bot to cast the spell alias dd]
+/bc shamandude cast buffsta grp buffhp focus grp buffhp %T [buffsta on the group, buffhp and on the requester, focus on the group, buffhp on requesters target]
+/bc necroguy makecamp [this tells "necroguy" to makecamp]
+/bc campout [tells all bots to camp to desktop]
+/bc exclude ${Target.CleanName} [tells all bots to add your target to the exclude / ignore list
+/bc clericname dobuffs on [tells the cleric to set DoBuffs to true and will then begin buffing group]
+/bc pallyguy cast bmb %t buffhp grp [bmb on requesters target, buffhp on the group]
+
+Typical commands sequence for an EXP group:
+/bc letsroll
+/bc makecamp
+You then begin to pull mobs and they will react accordingly.
+
+Mobile Camp Example:
+/bc follow
+/bc buffup
+[once ready zone into the instance]
+/bc stop
+/bc letsroll
+[clear first room lets say]
+/bc follow
+[move to next room]
+/bc makecamp
+[etc, repeat]
+
+Example movement options with or without invis
+/bc mbp on
+/bc follow
+
+Example commands if using only locally and not controlling other bot
+/echo mb- <command list below>
+
+Setting up the "/mb" alieas
+/alias /mb /echo mb- 
+Then you can just
+/mb <commands>
+to control you "bot" directly
+
+Requirements:
+<In addition to the default plugins>
+MQ2EQBC & EQBCS
+MQ2Cast
+MQ2NetHeal
+MQ2NetBots
+MQ2Melee
+MQ2Bandolier
+MQ2MoveUtils
+MQ2Exchange
+
+ModBot MQ2HUD.ini:
+[toonname_servername]
+Last=modbotall
+SkipParse=7
+CheckINI=100
+UpdateInBackGround=on
+ClassHUD=on
+ZoneHUD=on
+
+[ModBotAll]
+Target= 3,060,210,225,225,225,Target Lvl-Class:${If[${Target.ID},${Target.Level}-${Target.Class}-Dis:${Int[${Target.Distance}]}-${Target.PctHPs}%,]}
+Name1=  3,060,220,240,240,000,${If[${NetBots.Counts}>=1,${NetBots.Client.Arg[1]},NA]} 
+HP1=    3,060,230,255,100,100,HP:${If[${NetBots.Counts}>=1,${NetBots[${NetBots.Client.Arg[1]}].PctHPs},]}%
+Mana1=  3,105,230,100,100,255,M:${If[${NetBots.Counts}>=1,${NetBots[${NetBots.Client.Arg[1]}].PctMana},]}%
+Pet1=   3,145,230,255,255,255,Pet:${If[${NetBots.Counts}>=1 && ${NetBots[${NetBots.Client.Arg[1]}].PetID}>0,${NetBots[${NetBots.Client.Arg[1]}].PetHP},]}%
+Name2=  3,060,240,240,240,000,${If[${NetBots.Counts}>=2,${NetBots.Client.Arg[2]},NA]} 
+HP2=    3,060,250,255,100,100,HP:${If[${NetBots.Counts}>=2,${NetBots[${NetBots.Client.Arg[2]}].PctHPs},]}%
+Mana2=  3,105,250,100,100,255,M:${If[${NetBots.Counts}>=2,${NetBots[${NetBots.Client.Arg[2]}].PctMana},]}%
+Pet2=   3,145,250,255,255,255,Pet:${If[${NetBots.Counts}>=2 && ${NetBots[${NetBots.Client.Arg[2]}].PetID}>0,${NetBots[${NetBots.Client.Arg[2]}].PetHP},]}%
+Name3=  3,060,260,240,240,000,${If[${NetBots.Counts}>=3,${NetBots.Client.Arg[3]},NA]} 
+HP3=    3,060,270,255,100,100,HP:${If[${NetBots.Counts}>=3,${NetBots[${NetBots.Client.Arg[3]}].PctHPs},]}%
+Mana3=  3,105,270,100,100,255,M:${If[${NetBots.Counts}>=3,${NetBots[${NetBots.Client.Arg[3]}].PctMana},]}%
+Pet3=   3,145,270,255,255,255,Pet:${If[${NetBots.Counts}>=3 && ${NetBots[${NetBots.Client.Arg[3]}].PetID}>0,${NetBots[${NetBots.Client.Arg[3]}].PetHP},]}%
+Name4=  3,060,280,240,240,000,${If[${NetBots.Counts}>=4,${NetBots.Client.Arg[4]},NA]} 
+HP4=    3,060,290,255,100,100,HP:${If[${NetBots.Counts}>=4,${NetBots[${NetBots.Client.Arg[4]}].PctHPs},]}%
+Mana4=  3,105,290,100,100,255,M:${If[${NetBots.Counts}>=4,${NetBots[${NetBots.Client.Arg[4]}].PctMana},]}%
+Pet4=   3,145,290,255,255,255,Pet:${If[${NetBots.Counts}>=4 && ${NetBots[${NetBots.Client.Arg[4]}].PetID}>0,${NetBots[${NetBots.Client.Arg[4]}].PetHP},]}%
+Name5=  3,060,300,240,240,000,${If[${NetBots.Counts}>=5,${NetBots.Client.Arg[5]},NA]} 
+HP5=    3,060,310,255,100,100,HP:${If[${NetBots.Counts}>=5,${NetBots[${NetBots.Client.Arg[5]}].PctHPs},]}%
+Mana5=  3,105,310,100,100,255,M:${If[${NetBots.Counts}>=5,${NetBots[${NetBots.Client.Arg[5]}].PctMana},]}%
+Pet5=   3,145,310,255,255,255,Pet:${If[${NetBots.Counts}>=5 && ${NetBots[${NetBots.Client.Arg[5]}].PetID}>0,${NetBots[${NetBots.Client.Arg[5]}].PetHP},]}%
+Name6=  3,060,320,240,240,000,${If[${NetBots.Counts}>=6,${NetBots.Client.Arg[6]},NA]} 
+HP6=    3,060,330,255,100,100,HP:${If[${NetBots.Counts}>=6,${NetBots[${NetBots.Client.Arg[6]}].PctHPs},]}%
+Mana6=  3,105,330,100,100,255,M:${If[${NetBots.Counts}>=6,${NetBots[${NetBots.Client.Arg[6]}].PctMana},]}%
+Pet6=   3,145,330,255,255,255,Pet:${If[${NetBots.Counts}>=6 && ${NetBots[${NetBots.Client.Arg[6]}].PetID}>0,${NetBots[${NetBots.Client.Arg[6]}].PetHP},]}%
+
+ModBot MQ2NetBots.ini (example):
+[Melee / Caster Types]
+Stat=1
+Grab=1
+Send=1
+
+[Healer Types]
+Stat=1
+Grab=1
+Send=1
+Heal=1
+
+ModBot MQ2Melee INI (example):
+[Main Tank Type]
+aggro=1
+bash=1
+bow=8836
+enrage=1
+facing=
+infuriate=1
+layhand=10
+melee=50
+plugin=1
+range=150
+shield=70051
+standup=1
+stickrange=200
+stun0=2581
+stun1=2582
+stunning=100
+taunt=1
+StickCmd=/stick hold ${If[${Target.Height}<5,10,${Math.Calc[${Target.Height}+6].Int}]}  ${If[!${Me.GroupSize} || ${Melee.AggroMode},moveback,${If[${Melee.BackStabbing},behind,!front]}]} ${If[${Me.Underwater},uw,]}
+BashIF=${If[${Melee.AggroMode},1,0]}
+TauntIF=${If[${Melee.AggroMode} && !${Melee.GotAggro},1,0]}
+
+[Melee/Caster Types]
+aggro=0
+enrage=1
+facing=
+infuriate=1
+melee=20
+plugin=1
+range=150
+standup=1
+StickDelay=
+stickrange=200
+StickCmd=/stick hold ${If[${Target.Height}<5,10,${Math.Calc[${Target.Height}+7].Int}]} ${If[!${Me.GroupSize} || ${Melee.AggroMode},moveback,${If[${Melee.BackStabbing},behind,!front]}]} ${If[${Me.Underwater},uw,]}
+UnHide=1
+Hide=1
+PickPockets=1
+Poker=7502
+SenseTraps=
+Intimidation=
+Sneak=1
+disarm=
+BackStabIF=${If[${Melee.AggroMode} || ${Me.AbilityReady[Backstab]},1,0]}
+BackStab=50
+HideIF=${If[${Me.AbilityReady[hide]} && (!${FollowFlag} || ${Select[${MakeCamp},on]}),1,0]}
+SneakIF=${If[${Select[${MakeCamp},on]},1,0]}
+
+[Pet Class Types]
+backoff=55
+enrage=1
+infuriate=1
+melee=200
+petassist=1
+petdelay=1
+petrange=100
+plugin=1
+range=200
+stickcmd=/stick hold ${If[${Target.Height}<5,10,${Math.Calc[${Target.Height}+8].Int}]} ${If[!${Me.GroupSize} || ${Melee.AggroMode},moveback,${If[${Melee.BackStabbing},behind,]}]} ${If[${Me.Underwater},uw,]}
+stickdelay=2
+stickrange=200
+sensetraps=1
+
+
+Available Commands via Syntax: /bc <toonname> <command> <option> [how to communicate to others, eg /bc bob doloot on, /bc buffup, /bc shamanguy cast buffsta grp buffdex buffdex %t buffhp grp]
+
+New Commands / Features:
+
+mbwayplay <INISection> <b/e/u/d> <t/f> <optional: c OR zonename> <optional: zonename>[INI Section you should know, b=from begining e=from end u=closest point towards the begining d=closest point towards the end, t=zone f=don't zone, c for chaining paths, zonename for magus porting (no spaces)]
+mbwayrec <INISectino> [INI section you should know]
+
+dobuffbot <on/off> <true/false> [with no parameters it is a toggle, Currently once set to true, it will not turn off and you MUST re-run the macro to "quit" this mode]
+domount <on/off> <true/false> [with no parameters it is a toggle]
+domelee <on/off> <true/false> [with no parameters it is a toggle]
+dodebuffs <on/off> <true/false> [with no parameters it is a toggle]
+dobuffs <on/off> <true/false> [with no parameters it is a toggle]
+dosongs <on/off> <true/false> [with no parameters it is a toggle, used for bards only]
+doheals <on/off> <true/false> [with no parameters it is a toggle]
+dopull <on/off> <true/false> [with no parameters it is a toggle, not fully production yet]
+doloot <on/off> <true/false> [with no parameters it is a toggle]
+doevents <on/off> <true/false> [with no parameters it is a toggle]
+dosit <on/off> <true/false> [with no parameters it is a toggle]
+doforage <on/off> <true/false> [with no parameters it is a toggle]
+dopet <on/off> <true/false> [with no parameters it is a toggle]
+dofw <on/off> <true/false> [with no parameters it is a toggle]
+doafk <on/off> <true/false> [with no parameters it is a toggle]
+mbpause <on/off> <true/false> [with no parameters it is a toggle, pause/unpause the macro, shortcut: mbp on/off]
+dolist [dumps the existing "Do" status]
+goto <y> <x> [moves to that loc]
+mana [dumps mana Pct to /bc]
+holdup [Setting - DoBuffs,DoDebuffs,DoEvents,DoMelee FALSE]
+buffup [Setting - DoBuffs & DoEvents TRUE & DoHeals FALSE]
+attack <optional target name or ID> <optional being HP setting> <optional end HP setting> [Setting - DoMelee TRUE & Attacking, e.g. /bc attack OR /bc attack badguy 100 20]
+letsroll [Setting - DoBuffs,DoHeals,DoMelee,DoEvents,DoDebuffs TRUE]
+stop [Stops at existing location]
+makecamp [Makecamps at existing location]
+include <mob name> [Removes <mob name> from alert lists]
+exclude <mob name> {Adds <mob name> to alert lists]
+follow <name> [follows the sender or <name> via followstick parameter in INI file]
+follow close [follows the sender within 3]
+abort [interrupts any cast in progress, Setting - DoHeals, DoDebuffs & DoMelee FALSE and follows the sender closely] 
+campout [performs a /camp desktop and ends the macro]
+sing <spellalias> [will sing this song and add the respective gem number to the Twist.List, it attempts to use detrimental as the qualifier to add it to combat songs, or rest songs]
+sung <spellalias> [will remove this song from the respective Twist.List, it attempts to use detrimental as the qualifier to remove it from combat songs, or rest songs]
+script <INI file section name> [This will allow you to run custom commands while the macro is running, or combine series of commands, see script examples in manual / rev notes files]
+
+cast <spellalias> <spellalias>..<on/off> OR <spawnname>..<%t>..<grp> [if spell is detrimental it targets the requesters target, if beneficial it targets the sender, if grp is present it casts buff on group members, if %t is present it targets the requesters target, eg /bc cast buffhp grp buffsta sow grp buffsta %t magdd ds snare, /bc cast magdd snare ds]
+[The cast command will ignore INI settings for things like minmana, maxmana, recasts, buff counters, etc this is mainly used for manual "one off" type casts]
+
+ModBot INI Settings:
+
+[Settings]
+DoMelee=FALSE
+DoHeals=TRUE
+DoBuffs=TRUE
+DoDebuffs=TRUE
+DoEvents=TRUE
+DoPet=FALSE
+DoSit=FALSE
+DoLoot=FALSE
+DoFW=FALSE
+DoForage=FALSE
+DoAfk=FALSE
+DoPull=FALSE
+MasterList=[Comma delimited master names, eg Bob,John,Billy]
+TankName=[Name of Main Assist tank, eg Bob]
+ExcludeList=[Pipe delimited names to exclude, eg a hollow tree|]
+Radius=[Radius that I will monitor, eg 100]
+SitAggroRadiusCheck=[Radius and aggro check to see if I can sit, eg 75]
+FollowDistance=[If using ADVPATH, eg 20]
+FollowStick=[If using MQ2MoveUtils, eg 20 hold uw]
+AfkMessage=[You should know this, eg Not now, thanks]
+PetCast=[Pet spell and gem using MQ2Cast syntax or charm <gem number of spell> <NPC type 0=any 1=undead,vampyre 2=animal 3=summoned>, eg PetCast=Animate Dead|gem8 OR PetCast=charm 4 0)
+PetAggro=[Turn pet taunt off or leave on, eg FALSE]
+PetAssist=[Assist and pet attack or not, eg PetAssist=1]
+PetFoci=[any spell foci you want to swap in or out for this spell using mq2cast syntax, eg -bandolier|healfoci ( you must have previously created the set via the MQ2Bandolier plugin /createset command)]
+DoMount=TRUE
+MountCast=[Spell/item/aa name and gem#/item/alt using MQ2Cast syntax, eg Collapsable Roboboar|item]
+
+
+If you don't want casters to melee make sure, in your [Melee] section that it has this setting:
+ACManaPct=101
+and that DoMelee is set to TRUE (this will allow the bot to cast on the MA target but not engage in melee)
+If you've configured your MQ2Melee properly (see examples below for pet or healer classes), your bot should not attack but your pet will still be sent in
+
+For Cleric Hammer type pets that you only want to cast / have while in combat, you MUST have DoPet set to False AND have PetCast=<pet spell name>|gem<number>
+
+The xx settings span most, heals, buffs, debuffs, events and must follow the syntax below
+
+xxCount=[number of buffs you have, eg 4]
+xxCheckTime=[How often to check for these spells in seconds e.g. 0 OR 2]
+xxGem=[gem number, item,,alt, or script e.g. 7 OR item, OR alt, OR script, OR item|leftear, OR item|ranged]
+xxSpell=[name of spell, item, alt ability, or script INI section name]
+xxSpellFoci=[any spell foci you want to swap in or out for this spell using mq2cast syntax, eg -bandolier|healfoci ( you must have previously created the set via the MQ2Bandolier plugin /createset command)]
+xxDurMod=[any spell extension percentage, eg 05 (for 5%), 25 (for 25%)]
+xxSpellMinMana=[Minimum mana percent to cast this spell]
+xxTarCnt=[How many targets required, must be at least one or will be skipped]
+xxSpellAlias=[Nicknames for the spell, multiple alias's use | seperator, and can not have a space, eg colddd|ddcold|frost]
+xxAnnounce=[Channel to announce or blank for no announce, eg /bc OR /g
+
+[AdvHeal]
+AHClass=[Class and default HP level required to cast this spell, eg hp85 war70 shd70 pal82 rng70 mnk40 rog75 brd80 bst80 ber80 shm40 clr dru wiz mag enc nec OR tnt] tnt = tankname target
+AHHealOOBC=[Heal characters outside of BC, a setting of true will heal any class in range that meets the criteria, eg FALSE]
+
+[AdvBuff]
+ABProactive=[Perform buff checks before or after they fade, eg TRUE]
+ABMobMax=[Maximum number of players to track for buffs, don't forget pets are "players"]
+ABTarType=[One or a combo of this (self and mypet must be exclusive) eg war shd pal rng mnk rog brd bst ber shm clr dru wiz mag enc nec grp pet cbt (check to cast this buff even if in combat) self mypet ]
+
+[AdvDebuff]
+ADMobxMax=[Maximum number of NPC's to track]
+ADSpellRecast=[Maximum number spell will be recasted on resist or interrupt, Bards ignore this setting, setting to 0 will not recast for any condition, eg 3]
+ADSpellDelay=[How long to wait in seconds to recast this spell, eg 0]
+ADTarType=[Target type of spell, 0=All mobs, 1=MA Target only, 2=All except MA Target, 10=All mobs before next spell, 12=All but MA target before next spell, settings of 10 and 12 need to be in top spells, eg ADGem1 and ADGem2]
+ADTarBegHP=[Target must be at or below this level, eg 100]
+ADTarEndHP=[Target must be at or above this level, eg 40]
+
+[AdvEvent]
+AEEventMinMana=[My mana must be at or above this level, eg 50]
+AEEventMinHP=[My HP must be at or above this level, eg 60]
+AEMinMana=[Mana must be at or above this level, eg 20]
+AEMaxMana=[Mana must be at or below this level, eg 40
+AEMinHP=[HP must be at or above this level, eg 10]
+AEMaxHP=[HP must be at or below this level, eg 80]
+AETarType=[Type of target, eg self, tnt (tankname target), clr, enc (any class shortname), using a class shortname I will attempt to target first class/PC found that meets the requirements, target them and cast this spell]
+
+[Melee]
+OffTank=[Do I only attack the MA target or do I assist MA and then not change targets, eg FALSE]
+ACLeash=[How far will I go to chase / attack mob, however if "TankName" stays within range 20 the bot will exceede this leash, eg 50]
+ACAssistPct=[Assist when target HP is this or less, eg 99]
+ACManaPct=[Stop assisting when Mana drops below this, eg 50]
+ACMeleeCmd=[You can use any melee commandline combo here eg /melee on 
