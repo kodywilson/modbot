@@ -1,0 +1,965 @@
+06152011 - TMN
+ - Fixed line 112 of modbuff.inc for bard auras
+ - Fixed typos in moddebuff, adrecast should be adspellrecast
+
+05082011 - Kroak.
+ - Moved modheal.inc to include changes that were previously in modheal2.inc including changes suggested by Woobs and Deeprave on forums.  Thanks for the input.
+ 		This is now the same as emu version.  It also includes a change to the precondition code in modheal.  
+ 		If AHPreCondition becins with "/" then it will execute as a single line script.
+ 		Otherwise, it will attempt to call MBScript and search for the script you specify.
+ 		In either use, {Param1} in your script is the heal target's ID, and {Param2} is the spell.ID your toon is wanting to cast.
+ 		
+ 		I will get to the other preconditions as I get time.
+
+Rev xxx
+ - Fixed issues regarding Aura.ID changes from int to string
+
+Rev xxx
+ - Fixed issue regarding return paths and the AdvPull section
+ - Added feature in AdvPull path pulling via MBWayPnt.INI so it will check that waypoint before 
+   moving to it, it will use ${APRadius} as the check diameter, if no mob it should go to next point
+	example:
+		[TestPull]
+		WPCount=3
+		WP1=-1096.00 1567.00 
+		WP2=-1167.87 1431.40 pull check  <-"check" new option
+		WP3=-1020.35 1302.63 
+
+ - Fixed issue in Modbuff that would cause "string not found" type error
+ - Fixed issue in modpull so if a mob spawns while your at camp and resting, once dopull is set back to on, it will properly begin pulling
+	
+
+Rev xxx
+ - Updated Modloot.inc for HoT 
+ - Added radiant mana HOT update (thanks Bartab)
+ - Fixed syntax error in Modbot.mac regarding death slot checks (thanks Bartab)
+
+Rev xxx
+ - ModEvent tweaked to allow 0 spell ranges to still fire, previously if a spell range was 0, it would skip the event (e.g. Paragon of Spirit)
+ - ModBuff not sure how but it seems one of the changes to include "shortbuff" so it will check your buffs and short buffs for stackability (now I'm not sure if it is even still needed)
+ - ModDebuff tweaked code so if an AE slow spell is being casted it will still cast no matter if you get hit by it or not
+ - ModMove tweak from BarTab (http://www.macroquest2.com/phpBB3/viewtopic.php?f=49&t=15313&p=145418#p145418)
+ - On a "holdup" it now sets DoPull and DoLoot to false
+
+Rev 3.499 beta
+ - PetCast is no longer needed.  You can now add pet to "AB" section by setting ABTarTypeX=petspell (or petcast).  Pets won't be cast unless DoBuffs and DoPet are true.  Also shouldn't cast if in combat unless "cbt" is included in ABTarType.
+ 	  When used with modbuff, Persistent Minion is also used automatically if you have it, and no extra entry needed.
+ - Added missing classes to select statement in modbot.mac (Thanks Bartab).  All "MB_50_" file names should be working correctly.
+ - Small changes to modheal.inc to correct PR spells casting too soon and overwriting before heal.  Also changed for interrupted spells to go back through the loop instead of recasting same spell. 
+
+Rev 3.498 beta
+ - Found bugs reguarding *not* using mq2netheal and the ADMobList.  This should be fixed and the macro *freezing* should be gone.
+ - Group pets weren't found for heals without netbots, but now are.  Same with out of group NetBots members.  Group is still checked first, but there were some bugs in modheal for netbots toons and pets.
+ - MQ2Melee has seemed to have a problem backing pets off for enrage, so I added a couple events to help..  Should do a little better keeping them alive.
+
+Rev 3.497
+ - Fixed another loop bug in modbuff when checking if new buff stacks last buff of target.  Last buff wasn't looked at correctly, so the spell would cast over and over.
+ - Linked the AHCondition of "PR" to the CH spell and a timer that's used without netbots plugin.  Currently, ${Select[${tSpellID},9755,9756,9757,18270,18271,18272]} is used
+   to determine which AHSpell number you're using for your PR spell.  (if I'm missing ID's please tell me.)  Any spell that has "PR" as it's AHPreCondition line will now
+   check if that spell has a longer cast time than the PR spell timer.  CH (ID of 13) spell does not need PR to be set up in .ini file and will work automatically.
+   NetHeal timer usage is different and I haven't gotten that far yet..
+   Also, made an attempt to prioritize tank over other group members without plugin.
+ - corpses shouldn't be added to alert list if they don't exist now.  Added a short delay before the /alert add along with a target check that was missing. 
+   
+ - fixed a few healing bugs from the 3.496 release.  'tank' is now usable in AHClass lines if not using the mq2netheal plugin.  It is exclusive just like using 'self' or 'mypet'
+   Reworked  'tank' heals so they should cast on mercenaries now also.
+Rev 3.496
+ - Modbot no longer requires the mq2netheal plugin.  For previous operation, the plugin can be loaded, but should operate the same without.
+   No changes to .ini files are required, and the same heal settings should be used as in previous versions.
+ - Actually reparied ADSpellRecast this time..  It's now working as originally intended, and ADCastOnResist now does require at least a 1 setting in ADSpellRecast.
+ - Because of lack of updates to NetCure, I have converted ModCure to cycle through ${NetBots[toon].Buff} and use .SpellType, and .CounterType.
+     This has resulted (at least for me) for more of the newer detrimental spells to be cured including corruption..
+     Specific types (Charmed, Rooted, ect.) are now detected directly with the MQ2Debuffs plugin which contain the same types that were in NetCure.
+     Note: Converted this back to only using MQ2Debuffs.  Added song checking with ${NetBots[toon].ShortBuff}.  Wizzy has some you may not want to worry about curing,
+     so be careful in setup..
+ - Added zoning from PoK to Time and back.  :).  Hopefully also corrected some other issues with follow that occur after zoning.    
+ - Update for MQ2AdvPath following and DoSit.
+ - Added feature - "addbuff".  /mb addbuff "<SpellName,ItemName,ect.>|<gem,item,ect..>" ABSpellAlias ABTarType.
+   Tested this by holding Bone Mask of the Ancient Iksar on cursor.  Used command /bca addbuff "${Cursor.Name}|item" iksar self
+   This adds these (yes the order is not the norm..)  The rest are added on restart (The array size change will also not take place until after re-start)
+   	ABGem35=item
+	 	ABSpell35=Bone Mask of the Ancient Iksar
+	 	ABSpellAlias35=iksar
+	 	ABTarType35=self 
+	 This allowed "/bca cast iksar on" after restarting the macro, and toons kept the illusion on themselves.
+	 ABTarType can be multiple targets if quotes are used.
+ - Added a check for the LargeDialogWindow when in follow mode.  When following, modbot will now select "Yes" and zone into your mission.
+ - Found a bug in Modloot.inc.  Corpse IDs NOT to loot are stored in alert list 25.  Modloot cleared the alert list after a time setting stored in your loot.ini file, but the time would get re-set any time a corpse was left with items.
+   This caused times when the alert 25 list was not cleared for hours, and your toon would eventually quit looting if killing same mobs over and over..  Timer is now re-set only if it's currently 0.
+ - Adjusted modmelee.inc for TankName not to immediately switch targets back to previous ACMATarget if target has been changed manually.  I set a delay of 5 seconds, and if attack is not on after that time, target will switch back.  So - Target new mob and attack on, tank would stay on new one. 
+ - Added a fix for pulling with monk and modbot running.  If monk was FD and not set as TankName monk would stand up and try to melee whatever mob the tank was killing.
+     Now any toon that's FD and set as puller in group roles should not stand to help.
+ - Added a change to pet shrink.  The call to MQ2Cast now  includes -targetid to make sure pet is targeted.
+ - Repaired the method modbuff.inc used for storing ID of each buffee in order to be more compatible with mercs.
+ - Added 'idle' and 'grp' to modcure.inc.  These should now work as they do in other areas of the macro.  
+   i.e. - if left blank the cure is for anyone/everyone, but only out of combat
+   - 'cbt' by itself is combat only.
+   - 'cbt idle' is all times including during combat and out of combat.
+   - 'grp' specifies the spell is group only, and can not be used on toons not in group.
+ - Added a /doevents flush to the DelayOnZone sub to prevent the sub from executing twice.  If called from other areas of the macro, the event itself won't re-execute the sub.
+ 
+ - Added PR checking directly to modheal.  Netbots ONLY - Set AHPreConditionX=PR to check for these spell ID's.
+ 			9755,9756,9757,18270,18271,18272
+   If one of those spell IDs are found on your target over NetBots, the heal with AHPreConditionX=PR will be skipped. 
+   Any other functionality that this needs (Like a health check maybe?) - let me know..  I'm thinking about changing it to PRxx.  xx being % health to skip, if under health, heal still fires if everyone thinks that's a good idea.
+   Currently does not check duration of the spell.
+   Any other spell IDs I missed please let me know.
+
+ - Added variable QuestOnly in Loot.INI (bool-default is false) to be used with DoQuest so the toon will only loot quest items, 
+	if this is true and doquest is false, the bot will only loot cash off mob.
+ - Changed the newly added AECustomEventx so the macro won't populate the INI (it will leave the entries blank instead of the random numbers)
+ 
+
+
+Rev 3.49
+I'd like to start by thanking those that have been attempting to help solve problems and update WIKI while I've been so busy..
+
+ - Mobs that are marked immune to debuffs can now be marked in MBCommon.ini to allow for some names that have only some immune, and some not.
+   Dreadspire for instance has some body types with same names immune to mez, and some not..  Example. - DreadspireImmune=|an aid to the Seneschal*|  
+   Some body types with that mob name are immune to befuddle, and others aren't.
+   Note the astrik placed behind the name will make the macro repeat attempts to mez similar named mobs
+   ADIfSpellImmune script will only run if the mob is found to be immune after cast, but the astrik will not be replaced, and the spell will only cast once
+   allowing the spell to still attempt on the next mob it hasn't been cast on.
+ - fixed a bug that kept single target spells with AERange and range from being cast.
+ Modloot changes-  (Hopefully I get most of them here, though some are already listed in Wiki.)
+ - '=Keep|#' is now a valid option.  - Check if you have # of items yet.  If not, loot.  Otherwise leave on corpse
+ - '=Script' Now runs the script for which you have placed a name in your 'KeepScript=' varible.  Standard multi-line script with Commands option.
+     The script will also run for all items marked 'Sell' to allow for checking values, so keep that in mind.  If your script decides to loot the item, 
+     you will need to call the appropriate sub from your script.
+     Example..  (this was meant only to run for 'Sell' option, but can be expanded.)
+      [Script-ValueCheck]
+			Commands=1
+			C1=/if (!{Corpse.Item[{Param1}].Value} || {Corpse.Item[{Param1}].Value} && {Corpse.Item[{Param1}].Value}>1000) /call LootItem {Param1} Keep Right
+		 A '/call LootItem {Param1} Destroy Left' will destroy the item.  Doing nothing, or exiting the script will result in item left on corpse.
+ - 'Category=' This setting is for creating a list of loot categories.  Best shown by example...
+	  Category=Smithing,Tailoring  (This will create Smithing=, and Tailoring= entries)
+	  Smithing=ToonName,ToonName  (This can be used to list specific toons to loot the items specified.  ${NetBots.Client} will make sure all toons will loot the item if the category is only to be used with other commands.)
+	  - After created, specific items can be marked with 'Rhenium Ore=Smithing'
+	  These categories can be used with other commands.  '/mb getbank Smithing TRUE' Will search bank for all items marked 'Smithing' and place them on your toon until you run out of room.  True|False option is Stacks or Singles.
+	  '/mb give <Toon> Smithing TRUE #' Will give # of Stacks (TRUE|FALSE) of Smithing items to <Toon>.
+ -  Items can also be marked directly with toon names if only one toon is wanted to loot them.
+AAPurchase -  Added third pipe option to specify skipping to check next next AA if you don't have enough.
+  Example.
+  AA69=Combat Agility|M|S
+	AA70=Combat Stability|M
+  You will buy CA first, but in the event you don't have enough AA for CA, CS is checked.  If not enough for CS, no others will be checked.
+	  
+ - Added check in modloot for newest version of mq2moveutils (there was a line that conflicted with pms's version of moveutils)
+ - Added section in ADSpawnCheck to confirm / cleanse how the puller aquires a target, this is only "active" when DoPull is true
+ - Added some additional check in modmove to catch zone events / doors better
+ - Tweaked modmove to allow chaining paths with "net-" option.
+ - Added Custom Events driven by scripts, these 3 new custom events appear under the AdvEvents section of INI
+	this will be created in your mb_ ini file:
+
+AECustom1 and 2 and 3=
+[Script-AECustomEvent1 and 2 and 3]
+Commands=0
+C1=/return
+
+example:
+
+AECustom1=greater bloodmoon healing
+
+[Script-AECustomEvent1]
+Commands=1
+C1=/bc cast stun
+ 
+
+ - minor spam fixed in melee or /disc based aura castings
+
+ - Added a change to Modheal.inc.  FD class toons and ${Group.Puller} - if out of ACLeash range and not FD will not be healed to prevent aggro on group, but only if healer is not in 'combat' combatstate.
+   If you have the newest NetBots from SVN, another check will be done on the NetBots[<Toon>].CombatState that needs healed...  If not in combat they will be healed.
+ 
+ - Debuffs that are skipped or wouldn't take hold will no longer announce that the mob has been debuffed with that spell.
+ 
+ - ADIfSpellImmune entries can now use {Param1} to get the immune target's ID.  Also the script will now be executed if the mob is already in immune list as well as when adding it.
+   Example for chanter mez spell - ADIfSpellImmune1=/bc {TankName} //multiline ; /varset ACMATarget {Param1};/target id {Param1}
+   That will make your <TankName> toon target the immune mob even if he was on another..
+   
+ - Added mijuki's patch for Group.MainAssist and Group.MainTank.  Seems to be working well, thanks.
+   This change makes your TankName variable be set to whoever you set as your Main Tank or Main Assist in group roles.
+   
+ - Changed an event to attempt to catch the spell name from the second line of "immune" messages.  MQ2Cast finds your mob immune even if the report it gets is from the wrong spell.
+   For instance, my wife's chanter was using 'Ward of Bewilderment" killing level 80 mobs..  EQ reports mobs are immune to the 'proc' of ward, but MQ2Cast was casting Mystify at the time, and reports "immune" because of the event.
+   The new event corrects the issue, but I may need to consolidate it with events meant for bards.
+
+ - Re-arranged the spawncheck sub just a bit more to properly exclude 'flyer' type mobs before any distance checks are done.
+ 
+ - Added Target.Buff checking back in, but it's now linked with a new variable in MBCommon.ini.  Each debuff listed in MBCommon.ini now has an 'OverwritesID=' entry.
+   This entry is meant for a list of debuffs that the spell doesn't 'Stack' with, but you want the debuff to overwrite.  Example for 'Mystify' to overwrite 'Mystifying Effect' and 'Visions of Kirathas' -
+   [Mystify]
+   OverwritesID=|14569|14570|14530|   - Any spell in this list will be overwritten  Spells not in list that Mystify doesn't 'Stack' with will make the spell not cast.
+   This does require user intervention, and there's no way to set it auto-set them.
+
+ - Removed the last remnants of ABProactive.  It is redundant and unneeded in the current modbuff..
+ - Disabled ADAgroOnly option if your toon is NOT one that would need it in order to cut down on posts and PM's with problems from it.  It now only works for bards and chanters.  Setting TRUE on another class will have no effect.
+ - Combined events for 'gift of' stuff into one event, and added the new 'Amazing'  AA to it.  I still don't have the AA at this point, so I haven't seen it go off, but it should..
+
+ - DoAura and AuraCast are now depricated and will no longer be created in new .ini files.  The settings are still used if they are already in place.
+ - Auras can now be used as buffs with the ABTarType of 'aura'.  Unless setting for a bard, the 'aura' tartype also requires either 'self' or 'mypet'-for mages.
+   Bard auras *REQUIRE* ABSpellAlias to be set up to cast, and modbuff will use CastCall to actually cast the aura.
+
+ - Changed buff scripts to be called for each toon and pass two peramaters each call.  In the past, the call from modbuff consisted of /call MBScript ${ABSpell[${a}]}
+   The call now consists of - /call MBScript ${ABSpell[${a}]} ${tName} ${tTargetID}  This allows use of {Param1} = (name of toon needing the buff script), and {Param2} = (The toon's ID)
+   This means that when setting up the script, you no longer need to loop through your toons for buffs, ect..  The toons are selected via ABTarType, and rules for existing buffs apply
+   i.e.  Self, tank, and mypet being exclusive.
+   If 'ABGem1=script' and 'ABTarType1=war shd rng grp' The script will be called once for each class it finds in group (will skip classes not in list)... target name and ID of each usable in your script as {Param1} and {Param2} respectively.
+   For operation to be the same as in the past (one execution each time through the buff loop), set ABTarType=self and/or set ABDurMod to delay it long enough to skip all other targets.
+    - This is beta and will probably change more very soon, but should stay workable with other scripts.  Please feel free to give some feedback if it gives you trouble.
+   
+ - Changed modbot startup message from 3.X to 3.421. (for now)  - I'll try to update that more often so people can report the version they're using.
+ - fixed a bug with the format of the /casting line in MQ2Cast_Spell_Routines.inc that wouldn't let the line memorize spells before casting.  It's now formatted with the pipe symbol and spells memorize correctly.
+
+Rev 3.42
+ - Fixed 'tank' TarType for buffs.  If you set your Group.MainTank, that will be used, otherwise, it will default to your TankName.
+   This is exclusive, and all other toons will be skipped.
+   
+ - Removed 'setnetworkini' command.
+ - Added new command 'setinivar'.  Usage - Usage: /mb setinivar <VariableName> <Setting>  (Don't use quotes around multiple word settings argument)
+   This will find and change any setting in your .ini, though it will have trouble with script settings if you have more than one (It will set the first C1= or whatever that it comes to).
+   Variables changed in the .ini are /varset with the macro running also  Spells, gems, ect will not be set unless you use the array correctly for <VariableName>
+   In other words, ADGem[1] is not the same as ADGem1.  Use ADGem[1] and this will set the ADGem1 .ini setting and varset the change to memory.  Use ADGem1 and it will only change the .ini.
+   
+   Example:
+I set up Ligament Slice on my rogue with this. 
+'/mb setinivar ADCount 4 
+(restart macro - had 0 count before) 
+'/mb setinivar ADGem[1] alt' 
+'/mb setinivar ADSpell[1] Ligament Slice' 
+'/mb setinivar ADTarBegHP[1] 40' 
+'/mb setinivar ADTarCnt[1] 1' 
+'/mb setinivar ADTarType[1] 1' 
+'/mb setinivar ADAnnounce[1] /bc' 
+'/mb setinivar ADSpellAlias[1] snare' 
+Without opening an editor, and the rogue immediately put it to use... 
+This still has a problem finding variables in very long sections.  
+If /echo ${Ini[${IniFile},<Section>]} is over the MAX_STRING value - (You go LD typing that if it is). -  Stuff like ABGem[20] is almost never found. (Still working on that.)
+
+   
+ - Added procedure "buy" in Modbot.inc - specifically you can use buy with this type syntax via a script:
+   C1=/call Buy ''water flask'' 75 yenny
+   
+   Syntax: Buy(item , quantity, vendor name)
+ 
+ - Added in option for a network based INI file for scripts and path playback (mbwayplay and mbwaypnt.ini file), must be prefixed by "Network-" or "Net-"
+   How you set your network INI file (in settings of your modbot INI set this variable:
+   NetworkINI=X:\shared\modbot\mb_network.ini
+   
+   This would be an example of your network based INI file
+   [DoPath]
+   WPLoop=FALSE
+   WPCount=1
+   WP1=600 200
+   
+   [Script-GoThere]
+   Commands=2
+   C1=/call mbwayplay net-dopath u
+   C2=/call Buy ''water flask'' 75 yenny
+
+ - Usage of Deathslot in the Settings section of the toon.ini is now true or false, current setting will be overwritten. 
+   Will only be true if your bot needs to camp to desktop to save res timer.  This way the macro will know if you died and had to camp out
+
+- Found a couple of bugs having to do with a Cast.Result that hadn't been included in the macro causing a bad loop.
+- Added casting check before re-sticking in mobprob event.
+
+- Several changes to allow grouping with mercenaries.  (might not be perfect yet) - You need AHHealOOBC=TRUE and netbots changes (or remove 'pc' from AHTarType lines for heals.
+	
+Rev 3.41
+ - New format for MBCommon.ini Immune section.  The Immune section now no longer exists, and has been changed to an even more "spell" centered approach.
+   A default will be saved for all debuffs which will include the spell name as the section, and MaxLevel=100 (default)
+   This has the advantage of making the MaxLevel setting easier to find also.
+   The actual list will be saved as ${Zone.ShortName}Immune=
+
+Example format..
+   
+[Mystify]
+MaxLevel=83
+SunderockImmune=|Oblivion|Baloondabloop|
+[Din of Tashan]
+MaxLevel=100
+[Multichromatic Assault]
+MaxLevel=100
+
+This is still Beta and needs feedback if not working correctly.
+
+ - For the why the heck do we need other macros addition, I added DoCombines.  This includes simple "/mb docombines" command to turn it on or off (default off) and an
+    event when you run out of stuff turns it off also.. It will check for an open tradeskill window with enabled combine button (you have to select recipe), and will click the button.
+    Then Modbot's built in cursor handling takes over.  Useful for tank to summon more arrows during fight...
+    
+ - repaired a 'Variable already Defined' error.
+ - Changed some stuff in modbuff.inc for long recast spells.
+ - repaired a problem created by ".GroupSize" for group buffs.
+  
+ - Added ADUseHoTT to debuffs.  I was asked for something like an "ADPrecondition" script peeps could run, but I really can't see a need other than checking if mob is agro.
+   If set to true, this will check if you have HoTT available, and if so, check if mob is agro on group or raid member.
+   Note that this will default to casting the debuff anyways if HoTT isn't available.
+ 		
+ - Fixed a bug that informed you the macro couldn't find your spell for blank .ini entries.  If no spell length in .ini file, it won't even search for it.
+ - Added 'potionbelt' as an option for gem usage in heals and debuffs.  This has been tested on heals and debuffs so far, not thoroughly tested for buffs yet.  I didn't have any clarity potions at the time.
+
+Rev 3.4
+ - Changed spell handling to auto-select Rk. II and III spells.  Only the spell name is needed, and the macro will find the correct rank.
+      This is not included in PetCast, MountCast, or AuraCast at the moment.
+ - Repaired a pathing bug when playing back paths and not using DoPull.  The DoPull code was automatically returning toon to camp.
+ - Changed MQ2Cast line in the CastCall sub to not check for heals and interrupt when a bot is commanded to cast a spell.
+ - Added the AETarCnt[x] variable to .ini files.  This variable was there in the past, but only for turning on/off an event with the "cast" command, it's now a setting in your .ini also, and default is set to 1 (on unless you change it)  Settings are *only* either 1 - on, or 0 - off.
+ - Attempted a fix for long recast buffs.  It's still recommended to use whatever spell gem ONLY for the buff you're wanting to use, but this should allow the macro to "move on" after buffing the first target..  Feedback needed.
+ - Added a check for ${Me.Combat} to modmelee.inc to check if melee has started.  For some reason toons receiving a single /killthis command at times haven't been attacking, and this seems to correct the problem.
+ - More small adjustments for MQ2Advpath usage.
+ - Added variables to [Settings] section of .ini files.  GoMNuke, GoRMNuke, and GoERMNuke nuke will only appear if the toon has the AA available upon startup.  These settings only require the * ALIAS * of the debuff you want to be "cast" on the MA's target when the event fires.  No script required.
+
+ - Set MakeCampD via the /mb letsroll command, for those that don't /mb makecamp and "autopull"
+ - Added option into MBWayPlay to allow multiple pull paths, if path one runs through with no agro, then it will look for a second pull path and run through that
+	example:
+
+	[pullpathA]
+	WPLoop=TRUE
+	WPCount=2
+	WP1=-912.25 2725.55
+	WP2=-818.70 2627.16 pull pullpathb
+
+	[pullpathB]
+	WPLoop=TRUE
+	WPCount=3
+	WP1=-735.19 2674.32 pull
+	WP2=-805.75 2687.67 pull
+	WP3=-912.25 2725.55 
+	
+	- Changed GoM, GoRM, and GoERM.  These settings can now take aliases for any spell you have set up in your .ini.  Debuffs will target the tank's target, all others will not target, or change target (group heals for instance).
+	  These settings still require you to be in battle, and have a valid ${ACMATarget} to cast.  (I may change this soon)   - Kroak
+
+ - Added more "door" types in modmove.inc, 
+ - InstaCast bard AA's will now casting instantly, previously it would /stoptwist, cast, re-twist 
+ - Fixed a typo in MBWayPlay, it was missing a /multiline so a variable wasn't getting set correctly - spudman
+ - Fixed a minor issue regarding enchanters and casting the gate spell (would cast project illusion first)
+
+ - Added check for "PC" in the spawn check in ModEvent.inc, for beastlords it was returning the pet information, not the PC
+ - Added "Quest|<count>|<quest name>|" to modloot.  This allows you to specify a stop point for looting quest items.  Second revision - Quest name is checked against your list of active tasks.
+ 
+ - Added a "Restricted List" to MBCommon.ini.  Whenever casting a mount, or outdoor zone in indoor zone, the zone ID and spell ID will be stored. (or "mount|" for mount items.)
+    Second time running modbot in that zone should result in macro not trying the spell in that zone.  
+    I have added to the "cast" command to prevent the spells you can't cast from being attempted also.
+    
+ EDIT:  Correct documentation for doquest command -  (not doloot as was here previously)
+ - Added /mb doquest <count> <quest name> command to modbot.inc.  Also a toggle /mb doquest "[on,off,true,false]"
+ - Added restricted zone list to MBCommon.ini.  Toons should now remember which zones mounts and buffs don't work in after they try them once.
+ - Added a distance check for AA's to ModCure.inc.  Thought I had done that in the past, but distance is now checked before casting.
+ - Changed targeting for heals.  When the heal spell's TagetType contains group, and the spawn to heal is in group, the "-targetID|${tTargetID}" is no longer issued.  Toons now cast group heals without changing targets.  (much more natural.)
+ - Added a few checks for toons following to be sure they're out of combat, or the toon they're following is out of ACLeash range before beginning to follow again to prevent chain "follow-stop" activity.
+
+ 
+Rev 3.3
+ - Added a distance check and movement to the SitCheck sub to correct toon's sit/stand behavior when using MQ2Advpath plugin.  This will move you closer before sitting so the toon will not chain sit/stand.
+ - Added MQ2AdvPath pause/unpause to modheal to correct the issue with toons that quit following after healing caused by MQ2Cast.
+ - Added a variable to modheal to store the current target for tanks to retarget the same mob after a direct heal.  (helps paladins)
+ - FIXED - Item casts for heals.  Cleric 1.5 and 2.0 should not interrupt now unless they're set up to do so (Interrupt for a better heal, or if heal isn't needed only.)
+ - repaired /varset error in modheal.inc along with copy/paste error in announcement call from modheal.
+ - Changed - When toons return to original "before combat" positions, they'll now be a little looser about it, and will return after all mobs in camp are dead.. not return from every mob.
+ - Changed the cast giveup timer for debuffs to correct problems with mobs getting added to immune list when they shouldn't.  Problem is intermittent, so not sure if it's solved...
+ - Added a check for "immune to" in modbot.inc's eqbc sub to keep other toons from trying to parse the line in the chat sub..
+ - Corrected many WTF-Errors for events (timing and loop issues)...
+ - Adjusted "abort" command so it will now interrupt all spells and dismount you.  Sucks when all the mounted toons die from the train cuz they couldn't move fast enough with the cheap horse...  :p
+ - Repatched modmove.inc with guild hall and magus check.  Prior code in some zones would cause bots to run around looking for a zoneline to cross
+ - Added ability to port from guild hall via portal system
+ - Added a delay if casting before accepting invites.  This allows the "/mb inviteall" command to work a bit better.
+ - Adjusted some things with the WillStacks checks in Modbuff to correct a problem with buffing some toons that weren't in the listed classes for the spell.
+ - Added ADIfSpellImmune<x> to .ini files for debuffs.  This is meant to be a quick one line script that is executed when a mob is immune to the spell you have cast.  If you need to do something complicated, other scripts can be called from it.
+
+ - Added global variable MakeCampD to hold the Me.Heading.DegreesCCW information when a /bc makecamp is done (the toon will "face" camp)
+ - Adjusted check for custom announcements, to use a custom announcement it must be at least 10 characters long to allow default announcements if using EQBCS colors (e.g. [+g+])
+ - Adjusted check in AdvPull to ignore timer if Param0 is specified (Param0 should only be used when pulling via a mbwaypnt.ini path)
+ - Added code for ADAggroOnly (only add mobs to lists if aggroed on group) to include TargetOfTarget (must have TargetOfTargetWindow.Open) - Tested and is working good, albeit slower then having it off.
+ - Adjusted code checks for when or when not to return to origin after melee
+ - Adjusted delay and reset if melee toon gets a "too far away" or "can't see target" type error.
+ - Adjusted checks for sitting.  If casting, moving, or in melee, you should no longer attempt to sit.  (This reduces the error messages.)
+ - Changed the code block for looting to remove the macro's habbit of constantly moving you to your ACStart X and Y position.  This was originally intended only after looting all mobs and should be working more as intended now.
+ - Corrected the list of classes with buffable pets to include Shadownights.  SK pets will now recieve buffs.
+ - Changed the movement to WP1 in modmove when pulling.  If you're fairly close to WP1 (your camp site) and no mobs are within your Radius distance from WP1, moving to WP1 will now be skipped, and pulling seems a bit more realistic.
+ - Tinkered a bit more with modpull.  Added another event to move on to the next waypoint if you can't hit your target, and changed modmove to return you to position WP1 if you're at the end of the WPCount.  APCheckTime will now correctly *pause* pulling
+    if you return to camp with no mobs in order to seem a little more realistic by not constantly running loops around the zone for no reason.
+    Also a few adjustments to 
+ - Changed the announce system to work with mob names that contain commas. It's no longer using .Replace[] to convert the %t in your announce text.
+ - Fixed MQ2AdvPath following to work slightly better...
+ - Added the ability of toons not in NetBots, and not in your MasterList to ask for buffs.  If the buff's alias is found in the line, it will cast on the person that sent the request, or if "pet" is on the same line, the sender's pet will be buffed.  
+    Take care to uncomment the correct chat channel in Modbot.inc that you're wanting to use for the feature.  i.e. #chat Tell for tells..
+
+Rev 3.2
+ - Fixed issue regarding item casting, missing a } and added check to stop WTF errors for item casts successfully
+ - Fixed issue with new custom announcements in ModBuff (missing {)
+ - Fixed issue with ModMove.inc regarding multiple detections of zoneing, also allowed for shorter delay (none) for bots to refollow
+ - Can zone from Guild Hall to guild lobby so long as the door is closer than the magus
+ - Added a short delay timer to modpull in order to delay buffs, aura, mounts, ect. after a successful pull.
+ - Added a mount check to one more area of modheal.  If you're on a mount and someone else heals your target, you won't dismount.
+ - Added a level check for single target duration heals so you won't cast em if they won't stack because the target's level to too far below spell level, along with a check if the target has no buff slots available..
+
+WIP
+ - Plan to add guild lobby portal options
+ 
+
+Rev 3.1  - Still in the works...
+ - Added 'inviteall' command.  - This will start modbot on all netbots members that aren't in the bazaar, and invite them to group after a few seconds...
+ - Added 'recast' command.     - This will toggle ABRecast (ON only) for buffs to recast with worn off messages instead of using ABTarType settings.  Won't change recast to 'FALSE' atm, but I may add that later.
+ - Added 'AHAllowDismount'.ini setting  - If set to FALSE, your toon will never dismount to interrupt a spell.
+ - Repaired '-invis' setting when used in your .ini file for PetCast, MountCast, or AuraCast.  Those along with pet shrink will not cast if invis, so the setting is not needed, but if the option is found, it will no longer error and end the macro.
+ - Changed the version /echo message.
+ - Repaired Bard 'cast [on|off]', 'sing', and 'sung' commands.  These now properly reset TarTypes and change corresponding twists.
+ - * NEW *  Added custom announce abilities.
+   you can now use %t for target, and %s for spell.
+   If your announce string is under 5 in length the old announce method will be used   
+ Example...
+   ADAnnounce1=/gsay MEZZED << %t >> with %s
+    "Soandso tells the group, MEZZED << a big ugly drake >> with Bewilderment"
+ - Corrected a small bug that was keeping PB AE spells from casting.
+ 
+
+Rev 3.0  - Kroak, TMN
+ - Repaired - Toons will not attack mobs that are on your exclude list, even if your MA Targets them.
+ - Added - /lootall command to wait4rez.inc
+ - Updated some areas for bards including fixed aura casting, MBPause will now stop songs, and the cast command will now allow a single song to be continually "cast" when paused (Song of travel for instance)
+ - Added a few more tweaks to pulling.  
+      If you add WPLoop=TRUE to your path section of your MBWayPnt.ini, your path will loop backwards from the point you've aggroed a mob to get back to WP1.
+      This is handy for hallways or places where buildings or terrain may be a problem.
+      I don't believe this is documented anywhere else, and it's actually been there a while, but it's now repaired and adding the entire variable is necessary.
+ -      
+ - Added debugging code to help determine issues, MBDebug, default is false, setting it to true (/varset MBDebug TRUE) will spew info to the mq2 window
+ - Fixed - Bards and item casting, this should now be working again
+ - Fixed - DoFW should now work and bots should cast food properly
+ - Fixed - Healcode when using "tnt", it will no longer "loop" if target dies between the casting begin / end
+ - Fixed - Selling issue where bots would react to one another 
+ - Fixed - Delayed sit when a bot gets hit, otherwise a bot "could" sit, getting max damage, now this oppertunity should be reduced
+ - Fixed - xxGem=10 can now be used in .ini files, and should properly cast if you have updated your MQ2Cast plugin.
+ - Fixed - AE spells will now work a little different.  Setting TarCnt to 1 in your .ini will now allow using an AE the same as a single target spell.
+           Spells with a duration over 2 and TarCnt greater than one will recast when the spell wears off if you haven't specified a duration in your .ini.
+           Any spell with a duration less than 2 minutes will only cast once per group of mobs.
+ - Added - Tradeskill window "Experiment" button click in the sell routine to finish opening the packs correctly.         
+ - Fixed - Some issues with buff and debuffs.  WTF errors should be reduced or non-existant.
+ - Fixed - The problem with CastOnResist spells not correctly being stored in the array.  They are now working correctly and should not recast if the mob has already been debuffed with that particular spell.
+ 
+ - NEW OPTION Events 
+
+You can now specify more than one class shortname on an event target type
+
+
+AETarType=clr wiz [all]
+
+You must meet AEEventMinMana and AEEventMinHP AND any listed class shortname must meet the AEMinMana, AEMaxMana, AEMinHP, AEMaxHP and the event will be triggered
+
+If "all" is used, and this MUST be the last option (wrong: clr all wiz, correct: clr wiz all), means that all listed classes must meet the requirements before the event is triggered
+
+You can't list classes that aren't using netbots, AETarType=clr wiz all, and you have no wiz, the event will NEVER trigger, keep this in mind.
+You can set this variable using "/varset AETarType[n] clr wiz all", n=the AE number you want to change.
+
+AEGem1=alt
+AESpell1=uber cool group mana buff
+AESpellFoci1= 
+AEDurMod1=0 
+AEDelay1=0 
+AEEventMinMana1=0
+AEEventMinHP1=1
+AEMinMana1=1 
+AEMaxMana1=80
+AEMinHP1=1
+AEMaxHP1=100 
+AETarType1=clr wiz all
+AESpellAlias1=manaregen
+AEAnnounce1=/bc  
+
+ - CHANGED - Because of string length limitations, the exclude list is now sorted by zone shortname.
+             You will need to rebuild your list.  Example of current format...
+            
+  [ExcludeList]
+  <Zone1>=|<MobName>|<MobName>|<MobName>| 
+  <Zone2>=|<MobName>|<MobName>|<MobName>| 
+
+
+Rev 2.6 Aug 28   -Kroak
+- added a few small things like a time-stamped announcement in /bc when tells are recieved along with a beep from the computer the bot resides on. This comes along with a "dotells" command to turn it off. If enough people want it, I can add it to the .ini for a TRUE/FALSE for each toon so you can have it off if it annoys you. - Let me know.. (personally I like it on even if I'm at the keyboard. Hard to see which of 6 toons got a tell..) 
+- Added a DoMount check to the buff loop so after telling a toon to use a mount, the toon won't need to go through the entire buff loop before even checking. 
+- corrected toons running off into the distance after a situation where you've paused, moved the group, and unpaused. (which was a small change to the coding of the "stop" command). 
+- Made an addition to correct ACState in the main loop... Toons were staying in combat mode too long. Toons that previously would hardly ever loot or cast a mount now seem to be working correctly. 
+- set calculations for buffs, events, and debuffs to use ${Spell[ ].RecastTime} to set spell delays when no delays were set in your .ini, or the delay wasn't long enough. - Which actually also corrected shaman canni spells. They now won't effectively "pause" the macro waiting to cast, and scripts will no longer be needed. I will need feedback if this is acting inappropriately with any spells I may not have tested... 
+- buff recasting should be working correctly now. Had a few spells that identified themselves wrong, and wouldn't make it past the .Range check in the beta code I posted. 
+- Additional use of "/call MQ2Cast" in other areas of the macro in order to call the heal sub more often. This results in more - wtf errors from the subs, but only after casting a required heal. 
+- also Toons facing odd directions with domelee on... Let me know if this helps...
+- included bartab's posted fix on extra brackets.  ( though I removed more than he mentioned... )  Seems to still work.
+Still in the works 
+- Queue for spells from the /cast command 
+- code cleanup. OMG - it's a mess... 
+
+
+rev 2.54 Feb 21    - Kroak
+ - Changed the spawn check in modbuff.inc to check for mobs on each loop.  This seems to have corrected the issue with toons that keep buffing after a new mob arrived.
+    If this creates more lag for you, check how many toons in the zone are on your alert list, and try to minimalize it...
+ - Changed ADDurMod to a "timer" check for scripts in the buff loop, and relocated the script call to after the moved spawn check to continue executing them at the correct time.
+    The scripts (only changed in buff loop atm) will now use the ADDurMod setting as a direct 1/10th second timer.  Set to 10 for one second..
+ - Added mage aura with some help and testing from workingitout.
+ - Added "PetShrink=" to the .ini files.  Leave it blank if you don't want your pet shrunk..  Otherwise, format it for standard /casting lines.  i.e. PetShrinkSpell=Tiny Companion|gem9
+ - Adjusted aura cast sub to allow using /disc for warriors. - i.e. - DoAura=TRUE and AuraCast=Myrmidon's Aura|disc will now cast correctly. 
+ - Corrected some more issues and odd behavior with on-deck stuff in modpull.
+ - Added aura check to Modpull.inc to stop toons from casting aura immediately after pulling a mob.
+ - Added "Ignore" command to cursor handling to allow setting items to never /autoinventory.  Containers will also be ignored if there's no open top level inventory slot (i.e. a plugin swaps in food and water...  Previous code would swap it back and not let plugin work)
+     Added "ForageIni=<Name of File>" to allow changing the name of your .ini file in case you use another forage.mac
+        that could destroy items set to "Ignore".
+     This allows a little more compatibility with plugins that swap food/drink or other items.
+
+rev 2.53  Jan 22     Kroak
+ - New command. "/mb dopull [on/off/path]"  Use just like any other command.  "dopull on" will use APPath setting in your .ini file, "dopull <path>" = same as "on" but specifies a different path to use.
+ - repaired some errors and added LAHoTT to modpull. ModPull will now use either depending on what is available to you. Both methods seem to be working much better. (LAHoTT recommended because no /assist needed but works either way) No settings to change - auto detected. 
+ - Added the missing APAfter code so it should be used if you have anything set in your .ini for it.
+ - Moved the APBefore code so it should execute before running the path.
+ - Added a mob-moving feature for pulling tanks when the mob gets out of range a bit. This will move the mob closer to the tank's makecamp point if distance is over 40.  Recommend keeping stickrange down to 35 or so. (only on the tank/puller though.  DoPull MUST be on, and toon must have aggro for this feature)
+ - Added cursor handling for foragers.  The code I used is some pretty old stuff that works great, but don't remember exactly where I found it.  However, thanks to *Forage.mac* for it.  (Only name I found for credit was it was based on code from Preocts)
+      Cursor handling explanation...
+      All items are added to "Forage.ini" with a -1 setting, and auto-inventoried if they aren't already there.
+      Edit the file and enter a "0" if you want that item destroyed, or any positive number to keep just that amount.
+ - Added the /mb alias to the start of the macro with one variable in MBCommon.ini.  I feel this will make it easier for newer users.  It will force the alias the first time ran, but won't afterwards unless you set LoadAlias=1 in MBCommon.ini - Settings
+
+ rev 2.52  (Some from previous 2.51) - Jan 16, 07 Kroak
+ - Changed recast for AE spells.  ADSpellRecast<X>=0 will result in a one-shot cast (once per pass through the debuff sub)
+    Setting ADSpellRecast<X> as anything other than zero should allow for chain casting (to be same as a nuke).
+    Use ADSpellDelay<X> for control of how often to cast zero duration AE spells.
+ - Exclude list moved to MBCommon.ini.
+ - DoCures added to letsroll and holdup command.  - Still kind of a work in progress. ( I need to update my MQ version atm and add more debuff types.)
+ - Added a previous fix that I had somehow lost and wasn't included in 2.51 - more propper matching of mob names in MBCommon so names like
+    Similar mob names like "Bloop" won't be affected by a mob entry named "Baloonabloop" for example.
+ - Changed heals just a bit.  Extra heal loop and setting NOT to interrupt any spell under 1 second cast time should result in some more reliable heals.  This will help with some AA that were being interrupted.
+ - auto-dismount if MBPause=TRUE *AND* following.
+ - ACMATarget should now get set properly if the TankName is set to the toons own name.  Still needs DoPull=True to aquire the target.
+ 
+Need feedback -
+ - Repaired a typo in modloot.inc and added another line to repair the "Snap" bug.  Should be working as intended now.
+     Let me know if not.
+ - Fixed melee issue with /stick getting paused by MQ2Cast and not unpaused.  Clears up the out of range problem unless your toon gets "stuck"
+    This possibly has created a bug with casters that have /makecamp on, but atm to repair that, I may have to add something to each casting sub.
+    Let me know, may have just been my computer acting up while testing, and only happened once, but can keep spells from casting correctly.
+
+Open to suggestions for further improvement/fixes.
+rev 2.5
+[color=orange][size=18]Updates Nov 17:[/size][/color]
+ - Fixed bug regarding bards and spell interrupts during the debuff loop (i.e. bard mez was broke)
+ - Fixed issue in melee so if you get out of range it trys to auto-correct better
+ - Fixed several issues in modmelee regarding how, when and confirming the MA's target, this issue would result in inconsistent and sometimes just wrong targeting information
+ - Added better code to reset internal var's used for pet attack's, pets should attack "properly"
+ - Fixed issue in ADAggroOnly setting, sometimes during a zone, if the person you're following zones AFTER you, you could aggro mobs by mistake
+ - Confirmed ADSpellDelay will be applied to "scripts", ADDurMod however is not nor will it be.
+ - Looting bug / snap finally (hopefully) fixed
+ - ADPull is now solid, melee or caster puller, works very good IMHO, especially for "on deck" mobs.  Make a hot key on your MA if you are doing it manually:
+HotKeys: 
+[code]
+OnDeck
+/varset DoPull TRUE
+/varset ACAssistPct 100
+/varset CampStatus 1
+/varset DoMelee TRUE
+[/code][code]
+OffDeck
+/varset DoPull FALSE
+/varset ACAssistPct 99 (or whatever value your INI has)
+/varset CampStatus 0
+/varset DoMelee FALSE (or whatever value your INI has)
+[/code]
+ 
+ Major addtion:
+ 
+ New File Creation: MBCommon.ini
+ File Purpose: Track spell id against mob level, mob name, mob home zone id and mob immunity of said spell id
+ File Syntax: Imm<spell id>=<max level>|<mob name>|<zone id>|<mob name>|<zone id>| etc etc.
+ 
+ Future Objectives: Add [Exclusive] section to track mob level, home zone id, etc, such that ONLY these mobs will be attacked, debuffed, etc
+[color=orange]____________________________________[/color]
+rev 2.4
+[color=orange][size=18]Updates Nov 11:[/size][/color]
+ - Really this time - Adjusted the buff code so you can now include "self" with other class shortnames and it should buff self appropriately.  This should avoid the need to create two buff entries in the INI (having pet and mypet in the same entry can cause problems)
+ - Fixed looting bug where you'd see your bots "snaping", please report any loot bugs as new
+ - Fixed an issue where a bot that had been hit, can get stuck in a non-melee state
+ - Added "campout char" and "campout <toonname> option to camp to character select or select a new char and relogon instead of camping to desktop (e.g. /bc campout char, /bc campout bobby)
+ - Added in more checks to determine if MBPause is on and if so to eject out of running subs
+ - Added more checks to test if you are pulling and getting beat on to not wait around and run back to camp (only available when DoPull TRUE, still not exactly how I want)
+ - Added in code in Debuff and Buff loops for outdoor only spell checks, it will turn off spell gems, items, alts if outdoor only detected and you are indoors.  
+ - Added in better me.moving detection to try and avoid bots stopping and buffing "mid-stride".
+ - Added forced AHHealMode, to do a better job at healing when things are looking bad.  See AdvHeal INI section for details via the modbot wiki
+ - Added more checking for non-MA based spells (e.g. mez) to make sure the mob is not the MA target (i.e. bot begins casting mez, then MA targets mob, bot will interrupt mez)
+ - /bc Cast <spell alias> <on/off> will now read from the INI file if you set it "on".  Previously it would only set it to 1
+ - Added in debuff check for spell ID's that may have been the same ID but previously cast, this only works if you have a the spell in question listed 2 times, 3 INI entries will not work properly (and I see no reason why you'd have 3 entries of the same spell).  This is usefull when you have priority debuffs on the ma but you want the same debuffs to land on adds after the ma (i.e. Slow)
+
+
+[u]Nov 6 updates[/u]
+ - Fixed the issues I introduced in v2.3 - namely I borked up the buff logic, sorry
+ - Fixed issues for bards and /bc cast requests, bards should now more reliably use items or songs for one-off requests
+ - Fixed some issues in the pull logic so this is more stable
+ - Added dismount and suspended minion checks on camping
+[u]Nov 4 updates[/u]
+ - Fixed issue with bards and swapping in items for casting, etc, this should now be fixed
+ - Added ADAggroOnly to AdvDebuff INI section, if set to 1 it will only add mobs to the mob list if someone in your group or in netbots is the mobs target.  Only use this option on bots that cast on targets that are NOT the main assist's target.
+ - Added color into the loot code - bartab
+ - Added in some more zone / portal types in ModMove (if there are known portal types you want added, let me know PoN zone click, etc)
+ - Added in auto-target and enhanced how one can play paths and do pulls
+ - Adjusted the buff code so you can now include "self" with other class shortnames and it should buff self appropriately.  This should avoid the need to create two buff entries in the INI.
+ - Pull code done semi-unsupported
+ - Added sub GiveCheck, documentation and /bc command inc soon, quick syntax:
+ if from a script:  /call GiveCheck <name of target> ''<item name>|<item name>|<etc etc>'' <optional, Stacks of this item: [t,f]>
+ example: /call GiveCheck {Me.Pet.CleanName} ''mage items|other mage item''
+ example: /call GiveCheck Bob ''ration|water flask'' t
+ - Death and spell gem rememing works now
+ - lots of misc things
+
+
+
+
+rev 2.3
+ - Fixed issue with bards and swapping in items for casting, etc, this should now be fixed
+ - Added ADAggroOnly to AdvDebuff INI section, if set to 1 it will only add mobs to the mob list if someone in your group or in netbots is the mobs target
+ - Added color into the loot code - bartab
+ - Added in some more zone / portal types in ModMove (if there are known portal types you want added, let me know PoN zone click, etc)
+ - Added in auto-target and enhanced how one can play paths and do pulls
+ - Adjusted the buff code so you can now include "self" with other class shortnames and it should buff self appropriately.  This should avoid the need to create two buff entries in the INI.
+ - lots of misc things
+
+Notes: I've had a couple typos in my INI file so you may see some extra entries, they won't hurt anything but won't be used either, the only ones used are documented
+
+rev 2.2b
+[u]Oct 20 updates[/u]
+ - Fixed problem looting when an item in LOOT.INI is set to =sell
+ - Fixed problem with mob detection in loot loop 
+ - Fixed problem with selling if you are too far from merchant
+ - Fixed issue with bard mezing, possibly changeing target too quickly (bard users, you may need to test this again / tweak the code)
+ - Fixed issue when the MA changes targets, bots don't seem to "re-assist"
+ - Fixed issue when you die regarding ADCharmID
+ - Fixed issue regarding loot and lore items - bartab
+ - Fixed a bug in ModMove.inc regarding zoneign
+ - Fixed some following problems in ModMove.inc 
+ - Added pull logic into mbwayplay - semi-unsupported
+ - Updated advpull.inc
+ - Several misc updates
+
+
+Rev 2.1b
+[u]Oct 10 updates - minor[/u]
+ - Fixed typo in the debuff loop for CastonResist
+ - Fixed death check mistake when macro starts - Katta
+ - Added better formula to buff and debuff tracking - Kroak
+ - NetBots & NetHeal get "set" during macro start if they are detected
+ - Added better loot check so looter doesn't return to camp, THEN run back and loot
+[u]Oct 9 updates - revision release beta[/u]
+ - Fixed charming, charming is now fully functional, works very good IMHO
+ - Fixed some minor issues re: when pets get sent in (they will now be sent in during debuffs)
+ - Added duration tracking to mob array for CastonResist option for Debuffs 
+ - Aura support has been added (reilly)
+ - Added spell set saving and reloading on death.  Death should be handled much better now.
+ - Misc updates to Wiki
+ - Fixed .ZIP file issue and relocated hosting back to Geocities
+ - Number of misc updates
+
+June 28 Updates:
+I didn't get time to compile all the new plugins from Sorcier (re: NetBots, NetHeal, EQBC(S)) so the latest working version of the plugins "should" work!! I do not have any reason to believe the newest plugins would fail modbot.mac either so if you have the new plugins compiled and use ModBot.mac let me know how it works for you
+
+ - Cleaned up usage of NetBots to reduce errors caused by drops, lag, etc. (sorcier requested)
+ - With newest version of MQ2Melee I've had to add new var/keypress option to re-enable sneak attack on rogues (this allows two custom hotbar keys 2 and 3, you can change these in the ModMelee.INC file)
+ - Can use modbot through /echo commands, once running /echo mb- <commands options etc>.  You can setup an alias "/alias /mb /echo mb-" doing this will all /mb as a form to more easily use this command option
+ - Cleared up a bug regarding melee and offtank options (offtank set to true should not revert back to TankNames target and if Offtank false, bot's will confirm they're attacking the proper target)
+ - Changed some things in main loop to help reduce CPU cycles
+ - Adjusted heal code to remove TTL options that is no longer supported.  Also tweaked the heal code to better account for HoTs and how spells like CH react to them - needs testing
+ - Fixed typo in ModMove.inc re: multiline
+ - Added option to only heal your own pet via a "mypet" exclusive option in the AHClassX ini entries (Kattamaran)
+ - Added Selling via mbwayplay code see example in notes
+ - Added door opening logic to mbwayplay see example in notes
+ - Added Script options, see notes below for details - needs more testing (confirmed usage under heals (ie. example below) and /bc script <command> but NOT in debuffs, buffs)
+ - Added code for custom INI use /macro modbot <custom ini filename / defaults to MB_<toonname> > (e.g. "/macro modbot raidmode" will create a MB_<toonname>_raidmode.ini file)
+ - Added check re: NPC and Aura's, Shaman Idols (Kroak)
+ - Added attack command option "/bc attack <name PC (will assist to get target ID) /NPC (will pull target ID)> <begin hp default=100> <stop hp default=0>".  Offtank must be set to TRUE. Needs more testing on mobs with more HP, only tested with tank types and it "worked"
+ - Added option for using Suspended Minion II (Raptor3000) (new PetCast option, e.g. PetCast=Bone Walk|gem8|smii - needs testing
+ - Added a PetFoci option in the INI file for swaping items in / out for the casting of pets - needs testing
+ - Added check re: NPC and Spawn.Standing (Fearless) - needs testing
+
+Notes:
+Selling:
+ - Example of mbwaypnt.ini file
+[code]
+[WayPathA] 
+WPCount=5 
+WP1=10 10 
+WP2=20 20 door
+WP3=30 40 sell magus
+WP4=30 80 door
+WP5=80 80 WayPathB b t c 
+[/code]
+Anything that equals "Sell" in the loot.ini file will be sold to the vendor that has "magus" in there name, no spaces in the name
+
+Scripts:
+/bc script <executes commands in this ini section>
+
+[Script-<CustomName>]
+[code]
+[Script-makecamp]
+Commands=5
+C1=/multiline ; /varset DoBuffs TRUE;/varset DoDebuffs TRUE;/varset ACAssistPct 99
+C2=/multiline ; /delay 7;/stick off;/tar ${TankName}
+C3=/multiline ; /delay 2s;/stick 3 behindonce
+C4=/multiline ; /delay 15;/stick off;/keypress back hold
+C5=/multiline ; /keypress back;/echo mb- makecamp;/if (!${DoLoot}) /echo mb- doloot on
+[/code]
+You would use this by doing /bc script makecamp
+Another example used in the macro INI file and not manually invoked
+[code]
+[AdvHeal]
+AHGem1=script
+AHSpell1=newpet
+AHSpellFoci1=
+AHDurMod1=0
+AHSpellAlias1=newpet
+AHSpellMinMana1=60
+AHAnnounce1=/bc
+AHTarCnt1=1
+AHClass1=hp20 mypet
+[AdvBuff]
+ABGem1=7
+ABSpell1=Reclaim Energy
+ABSpellFoci1=
+ABDurMod1=0
+ABSpellAlias1=reclaim
+ABAnnounce1=/bc
+ABSpellMinMana1=20
+ABTarCnt1=0
+ABTarType1=self
+[Script-newpet]
+Commands=4
+C1=/casting ${PetCast} -maxtries|5
+C2=/delay 10s (${Cast.Timing}<=600)
+C3=/multiline ; /if (${Me.Pet.ID}) /pet go away;/delay 5s !${Cast.Timing}
+C4=/if (!${Me.Pet.ID}) /call PetCheck
+[/code]
+
+Updates: 
+June 12
+ - MOVED OUT OF BETA - CODE IS PRODUCTION!!!
+ - Fixed issue in Charming section of Debuff loop, it was ejecting at an unappropriate time (this bug was causing some decent lag / loop issues in the debuff loop)
+ - Fixed /varset errors if you don't have any debuffs (really this time).
+ - Fixed missing /declare in modmove.inc re: following through magus's
+ - Fixed issue in modmove.inc for mbway re: zoneing / var passing
+ - Added a ADSpawnCheck in part of the main loop to more frequently check for spawns
+ - Added better logic for charm breaks, essentially if you are charming, That is treated as the highest priority to recharm (just UNDER healing)
+ - Added longer delay between casting a spell in the manual cast loop (ie. /bc cast <spell alias> grp) when using the "grp" setting (spells kept timing out for me)
+ - Adjusted code in modbuff.inc to account properly for ABTarCnt>1 settings
+ - Made enhanced Bard melee and debuff reporting accuracy, should be MUCH better
+ - Updated ClassINI example zip file
+ - Misc code cleanups
+
+Updates: 
+June 05 
+- Added some code to increase Bard melee dps (negligable maybe 1 or 2 hits) 
+- Added some "/squelch"'s to advloot.inc to reduce "moveto", etc type echos 
+- Added fix for ModBuff.inc re: buff looping when ABProactive=false (Kroak) 
+- Adjusted some declares in the ModDebuff.inc file to remove errors from bots that had no debuffs (Lord_Vyper) 
+- Adjusted code in ModDebuff.inc for better / proper mob handleing (spudman) 
+- Created new ModMove.inc to break out the move / pathing routines (not much new code just moved much of what was in the core .mac out of it) 
+- Fixed a conflict between /declares in AdvPath vs my own declares (xcom21) 
+- Confirmed AdvPath integration now works as intended 
+- Changed command "letsrole" to proper english "letsroll" (spudman,workingstiff) 
+- Added charming options via PetCast var in INI file (e.g. PetCast=charm <gem number of spell> <NPC type 0=any 1=undead,vampyre 2=animal 3=summoned> PetCast=charm 4 0) 
+- Added some code for better notifications on buff spell mem failures (workingstiff) 
+- Added commands: MBWayRec, MBWayPlay for recording and playbacks of paths (ModMove.inc) 
+- Added target.distance to HUD 
+- Included "Example-MBWayPnt.INI" file that is documented to help explain usage 
+
+Special Note 
+- Due to the changes in ModDebuff.inc it is important to note that the ADMobMax setting in the INI file must include any PC based group members PLUS the number of mobs you want to track 
+- Due to the priority of the charm feature added, it should be listed as a priority debuff in the top slot 
+- The Default INI file name for the new MBWay code is "MBWayPnt.INI" 
+
+WIP / Known Issues 
+- Need to add immunities list for Charming to stop attempted charming immune mobs 
+- Need to add faster response to charm break (I've not died because of it yet but almost LOL) 
+- Add magus and portal zoning into MBWayPlay (say, move from Nendaria, to PoK, to GuildHall, all in one "play"). 
+- May add some Mob avoidance options in playback 
+- Plan to add some basic selling code to dump / sell items listed in the "LOOT.INI" file 
+____________________________ 
+
+May 22-part duex
+Fixt Link to revO (b)
+Fixed issue in modmelee.inc (my bad :( edited something at work)
+____________________________
+
+Updates:
+May 22
+ - Fixed ABProactive stack check (or lack of it) re: pets, pets should now get buffed properly re: stack checks
+ - Added better checking code on when TO or NOT to cast a buff (was too sensitive)
+ - Added better checking in debuff loop to avoid unneeded looping
+ - Fixed query for what is or isn't a mob. Trying to cast on mounts should no longer be an issue
+ - Adjusted melee code to reduce / remove "attacking" spam caused from mana thresholds being met
+ - Have bots check if they have aggro before attempting to sit
+ - Adjusted code in AdvHeal.inc so it shouldn't interrupt heals (e.g. false positive issue).
+ - Fixed issue in "/bc abort" command, it should now stop anything it is doing and follow the sender
+ - Added "/bc DoBuffBot yes/no true/false" option, this will respond to tells for buffs (e.g. /t shmguy buffhp), needs more testing and feedback, must rerun macro to "revert to normal bot" mode.
+ - Tested and confirmed updated EQBC and EQBCS from AscII38 work fine with the macro
+ - Minor code cleanups
+
+Special Note:
+ - Added manual "keyboard key" for rogue use only, set this to match a hotbank button for "Sneak", this would allow you to "unsneak" if follow commands are given, otherwise rogues may "stay" sneaking.
+ - Fixed bug in advpull.inc, it created a "null.ini", "APRangedMod.INI" files by mistake.  You should be able to delete these files, sorry.
+
+WIP / Known Issues
+ - none at this time
+
+
+May 22
+ - Fixed ABProactive stack check (or lack of it) re: pets, pets should now get buffed properly re: stack checks
+ - Added better checking code on when TO or NOT to cast a buff (was too sensitive)
+ - Added better checking in debuff loop to avoid unneeded looping
+ - Fixed query for what is or isn't a mob. Trying to cast on mounts should no longer be an issue
+ - Adjusted melee code to reduce / remove "attacking" spam caused from mana thresholds being met
+ - Have bots check if they have aggro before attempting to sit
+ - Adjusted code in AdvHeal.inc so it shouldn't interrupt heals (e.g. false positive issue).
+ - Fixed issue in "/bc abort" command, it should now stop anything it is doing and follow the sender
+ - Added "/bc DoBuffBot yes/no true/false" option, this will respond to tells for buffs (e.g. /t shmguy buffhp), needs more testing and feedback, must rerun macro to "revert to normal bot" mode.
+ - Tested and confirmed updated EQBC and EQBCS from AscII38 work fine with the macro
+ - Minor code cleanups
+
+Special Note:
+ - Added manual "keyboard key" for rogue use only, set this to match a hotbank button for "Sneak", this would allow you to "unsneak" if follow commands are given, otherwise rogues may "stay" sneaking.
+ - Fixed bug in advpull.inc, it created a "null.ini", "APRangedMod.INI" files by mistake.  You should be able to delete these files, sorry.
+
+WIP / Known Issues
+ - none at this time
+__________________________________________
+May 17
+ - Added code for better zoning, includeing tweaks to portal type and didn't zone via "zonelines" very well, should be much better
+ - Added code for bards to recast on resists, stuns, missed notes, etc using the ADSpellRecast in [AdvDebuff] section
+ - Tweaked "/bc cast . . ." code to reduce "I can't cast . . ." errors sometimes seen using "grp" setting
+ - Fixed code in "follow" such that if bot isn't in zone, it won't try to zone, your master must be must be in the same zone to initially follow and so you don't attempt to follow a "corpse"
+ - Added command MBPause/mbp on/off true/false (e.g. MBPause on OR mbp on).  This will pause heals, buffs, events, debuffs, melee.  Other commands should still function (e.g. /bc name cast spell, /bc follow, etc) (thanks kroak)
+ - Added example commands in manual of how to move around with or without invis
+ - Fixed typo in HUD example and added Target % HPs to it
+ - Removed pet attack check for enchanter class's so they will now /pet attack if PetAssist=1 (thanks Siberian-freak)
+ - Fixed issue in loot code that could cause looter to attempt to loot PC corpses
+ - Fixed issue where a priority (10 or 12) debuff may not react properly (e.g. would move to the next debuff not the next "mob"), any adds, the bot should react properly now re: debuff order (thanks spudman)
+ - Fixed issue that could cause bot to run to/from camp during target changes and debuffs (bards would see this most I think)
+ - Fixed issue where stick may not "stick" after a target change during melee encounters
+ - Add line in Melee INI section for /melee <all options> (Please see MQ2Melee Plugin for all settings)
+ - check for chests traps, etc (e.g. ${Target.Type} and ${Spawn[id].Type} and not add them to mob array
+ - Updated class.ini files (still missing a wizzy one and berserker though)
+ - Added example comments in manual for MQ2Melee INI file for melee and such
+ - Added code to allow "mezzers" to mez NPC pets (thanks fearless)
+ - Tweaked buffs with "cbt" option to check a 50 radius instead of 40 (may need increase even more, need feedback).
+ - Cleaned up code in several areas to make it more cpu efficent
+
+WIP / Known Issues
+ - Need to add better checks for casters that may get aggro to not sit, or at least wait longer if agro only gained by sitting
+ - Need to compile and test updated EQBC / EQBCS code from AscII38 (just been lazy with this one to be honest, sorry)
+ - Potential issues on debuffs regarding the ${Spawn} results.  This can be easily fixed but will result in /tar spam. I don't plan to correct it UNLESS it becomes a problem, so keep this in mind and report back :)
+__________________________________________
+May 3
+ - Fixed typo in ModDebuff from re-coding in revLa, typo as it turns out was in several version :(.  Also placed WTF-Debuff back into code to get feedback if this still occurs for others (only occurs for me on shrouded toons) I think debuffs are fixt YEAH
+ - Fixed issue regarding pet buffs (e.g having "pet" in your TarType will now work as expected)
+ - Added 1.5s delay for shrouded toons when finish casting buffs or heals in attempts to compensate for shroud lag and AA refresh
+ - Tweaked zoneing code slightly to give one last shot to click on a portal before it /bc can't zone through, and waits for manual intervention
+
+WIP 
+ - May add code for all shrouded toons but I'm not sure on this yet :p
+ - Trying to clear up spam you get if mana pct falls below set amount and your bot heads back to camp
+ - Need feedback on if a toon that debuffs all mobs (not just MA mob) and is meleeing, if they attempt to run back to "camp" or "start location" during a debuff on a non-MA target (troubleshooting a bard issue I'm seeing)
+ - Need to compile and test updated EQBC / EQBCS code from AscII38
+ - Need to add better checks for casters that may get aggro to not sit, or at least wait longer if agro only gained by sitting
+
+Notes
+ - WTF errors should be nearly 100% removed,  The code is still there as I'd like folks to actually try this macro out and let me know how it works for them.
+
+May 02
+ - Added code for zoneing, be it a magus, a port stone, door (nonkeyed), zoneline, etc, should zone and follow (magus ports will wait for master to zone to determine what to "/say" to magus)
+ - Fixed another issue that could cause melee to sit during combat
+ - Changed debuff casting logic to remove WTF errors.
+ - Fixed typo in debuff code for fizzle and interrupts.  Currently I'm still /echo ing if a spell fizzles, interrupts, immune, takes too long, etc for debuging purpose, will remove once "live"
+ - Fixed issues regarding buffs, events, and heals getting broken from revK, revKa, revKb.  
+ - Adjusted code for buffs, events, heals to not target anything if it is a self or group spell (if group spell and a PC targeted, it will target self, otherwise it won't retarget)
+ - Adjusted code in ModHeal.inc to not interrupt an existing cast in place of a HoT, however it will interrupt for any "non-HoT" heal. I need feedback on this
+ - Adjusted code in ModPull.inc to make sure you're standing before any "face" takes place, modpull.inc not fully integrated
+ - Added ModBuff scrubbing code and excluded non-pet classes from buff checks. I need feedback on this
+ - Adjusted debuff code such that if a heal is required during debuff loop, it should cast heal and attempt to cast debuff. I need feedback on this
+ - Added code to avoid "not in range" if meleeing, if you don't get in range within 4s it will /killthis anyway.  Would like feedback, could probably avoid this by mq2melee INI tweaks 
+ - Added code to stop casting a heal if target HP goes up by 5%
+ - Added code to confirm if a melee target is dead to "flush" melee code
+ - Adjusted melee code so if you drop below manapct threshold you'll stop and either return to camp or wait until mob is dead then take action (e.g follow, return to camp/start position).
+
+WIP / Known Issues
+ - Need feedback on if a toon that debuffs all mobs (not just MA mob) and is meleeing, if they attempt to run back to "camp" or "start location" during a debuff on a non-MA target (troubleshooting a bard issue I'm seeing)
+ - Need to compile and test updated EQBC / EQBCS code from AscII38
+ - Need to add better checks for casters that may get aggro to not sit, or at least wait longer if agro only gained by sitting
+ - Need to compile and test updated EQBC / EQBCS code from AscII38
+ - Shroud AA's not working as intended (getting false positives, I'm doubtfull this will be solved)
+ - Potion / Shroud AA/Spell durtions return from MQ2 appears incorrect (e.g duration returns 600 when buff is only 30min)
+ - Probably add shortnames for mele (melees) and cstr (casters) (e.g. "mele" instead of "war shd pal rog bst brd" and "cstr" for "wiz enc nec dru shm" etc) for things like buffs, objective to reduce processor cycles
+____________________________
+Apr 27
+ - Fixed typos from the not tested at all additions noted in Apr 26 update (Thanks Kroak)
+Apr 26
+ - Fixed issue with random sitting during combat (my bad here as I thought it was a conflict between mq2melee / mq2moveutils)
+ - Changed DoBuffs for bards, they will now ignore /bc DoBuffs off and now use DoSongs (on/true or off/false)
+ - Fixed issue regarding targeting and melee, should be able to change targets after engage without bots following unless a "/bc attack" is given, they should change targets then
+ - Fixed issue where bot may end up sitting outside of camp radius, bot should now stand and move within radius, needs more testing tho
+ - Fixed issue where bot may drop below ACManaPct but not stop meleeing, now bot should stop attacking if mana drops below threshold
+ - Fixed this time I hope, option for cast command to include a toonname also added self (e.g. /bc bob cast buffstr self) (e.g. /bc bob cast buffstr jane)
+ - Added AdvPull code into beta for general release, it has not been fully integrated, current usage has only been tested when the "puller" is the master, otherwise the results maybe unpredictable, longer term plan is to have some nice FD / single pull type code (if I get that far)
+ - Added option to turn off any spell via setting the XXTarCnt to 0.  This isn't written to the INI, just affects the memory resident var e.g /bc bob cast buffstr [off/on], sets the TarCnt to 0 or 1 (if you have a tarcnt=3 this won't revert it back to 3, only to 1)
+ - Fixed a typo in the manuel re: dobuffs, doheals, doevents it was written without the "s" and didn't have doheals
+ - Fixed an issue regarding fizzles for buffs and cast command.  Fizzles during buffs should recast on same target. During the buff loop should any target get skipped the skipped toon will be accounted for during the next "cycle".
+ - Add stacks check for buffs, this is only used if ABProactive = false
+ - Added rogue "Sneak Attack" option however you can NOT have "sneak" in your actions window (however you can place that hotkey elsewhere (ie hotbar button) and use it manually), this isn't "perfect" but does work
+
+Added but not tested at all:
+ - Fixed issues regarding interrupts for heals and not "unducking"
+ - Added code to check if a buff, event, heal is a required targetable spell or not, if not, then the bot should not change targets
+
+Apr 9
+ - Fixed problem where pets would be sent in "too soon"
+ - Fixed typo that would cause alt and/or item heals to not always cast
+ - Fixed code to use MQ2CastBeta plugin more efficiently speeding up overall macro code
+ - Fixed bug that was causing CTD on item and/or alt casting (overlooked syntax change from MQ2CastBeta, my bad)
+ - Fixed a typo in enc.ini example file re: adtarcnt and entrance
+ - Added extra check in buff code for minmana during (e.g excesive fizzles used to cause loops in buff code)
+ - Added check to make sure some key plugins are loaded
+ - Added check for spell book open, need feedback
+ - Added "toonname" to "cast" command (e.g. /bc clericname cast buffhp ${Target.CleanName}) If toonname and any spell alias match you will have issues.
+ - Added/confirmed potions seem to work ok but needs to be tested further,  durtions return from MQ2 appears incorrect (e.g duration returns 600 when buff is only 30min, this is same for Shroud AA/spells as well)
+ - Added Mount support, can be item, alt, or spell, need feedback
+ - Added "cbt" to TarType Buff option, this setting will cast "this" buff when the tankname is attacking OR when NPC's are withing 40 steps (e.g. TarType=cbt pet shd shm grp), it will only do these type checks IF cbt is in ANY of the buff TarTypes
+ - Added "ABProactive" option to cast buffs before or after they fade, if FALSE, code should be less processor intensive however this setting to FALSE will require /netbots buffs=on
+ - Added extra checks to make sure WTF-XXX's are minimized, these shouldn't be seen unless a possible "bug" exists.  
+ - Changed TarType Buff option "self" and "mypet" are no longer exclusive.  
+   However "self" and "mypet" should be treated as exclusive or to only be used with cbt (e.g. spell is yaulp, TarType=self cbt) 
+ - Changed TarType Buff option "grp" the buffer must be in your group if grp is used (will look to alter this such if 
+ - Changed PetCast syntax to [spellname/itemname/altname|gem#/item/alt] Do not use -invis (e.g. Summon Dead|gem7)
+
+Apr 4
+ - Fixed issue with multiple spell alias's not working - ie. buffstr|strength
+ - Fixed issue/typo from change in MQ2Cast - ie. -bandolier|setin, this now works
+ - Fixed command "campout" this now camps to desktop and ends the macro, removed command "camp"
+ - Fixed issue that would cause debuffs, events, and buffs to act is though they didn't land or return success, and/or getting into debuff loops, etc
+ - Fixed issue where bot would sit too soon after a fight and before returning to camp, bot should now only sit if "at the camp"
+ - Fixed looting oversight caused from makecamp
+ - Added extra check to make sure you don't buff group/loop, etc if MA is attacking
+ - Added command "makecamp" see manual below
+ - Added Target Lvl-Class: to HUD
+ - Added options to "cast" command (included grp option and multiple options per request), cast now only has limit of length (no more then 255 characters, or is that 2048, don't recall).
+ - Added better logic to determine when to sit or not.
+ - Added EQBCS.EXE to zip file (this will not be supported and is a working Windows XP version)[url=http://www.macroquest2.com/phpBB2/viewtopic.php?t=12147&postdays=0&postorder=asc&start=0]EQBCS Commands[/url]
+ - Changed order of autoinvetory and DoForage option to reduce risk of something on cursor
+ - Changed announcements to only announce on "successfull" and not when the cast starts (but when it lands)
+
+Requesting feedback / questions
+ - Does offtank work (this is partially WIP)
+ - Longcasting buffs or BuffDurationMod working as intended, are buffs in general working as expected
+ - Healing working as expected, HoTs, etc (and yes these have been tested but I'd like others to feedback) Healing should break for faster heals or for more hurt targets, etc.
+ - Zoning options / fixes (there has got to be a better way and I'm just missing it, eg book clicks or rock clicks, etc)
+
+Mar 31 - Updated the manual to include the bard sing / sung commands
+
+Mar 30 - _RevHa up now - few fixes mentioned 
+Added other class INI example files.  Fixed a few issues Fearless noted and some others I found while changing the code at work (tisk tisk).
+____________________________
+Well here it is!
+
+I've been working with this now for several months.  It began as some modifications to AdvBot.  Then grew into its own.
+I've got several folks to thank, in no particular order
+Sorcier, Fearless, AD00, AE00, OmniCtrl, countless members that have helped me through answering my many questions.  The community as a whole has been helpful to a great extent.
+There is some straight up plagiarizing in my macro and frankly I've lost track of who did what first.  I'd say nearly 90% if not more is my own work though.
+It is still beta and I have many things yet to do.  It works great however as it is for me.  I plan to update this once every couple of weeks until I get kinks worked out.  The code still needs a fair bit of cleanup as well so you could see some /echo <bla> or /bc <bla> now and again.
+I use this for general exp groups and not for raids however I'd think it could be used for both.  I don't have an army of high level toons so there are many things I'll need feedback from.

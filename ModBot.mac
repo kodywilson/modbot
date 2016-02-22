@@ -1,0 +1,195 @@
+|
+| Modbot.mac
+| Modular Bot macro. This macro lets you specify thresholds for debuffing/healing/events etc.
+| Version 3.1
+| ModBot Birthdate:10/1/2005
+| - Upkeep by Kroak, but this was started by TooManyNames...
+| - Special thanks to TooManyNames, Fearless, DKAA, and A_Druid_00 (yes, I have directly stolen your code.  :p) And many others I have learned and stolen from.  :)
+| - Thanks also to the writer of Forage.mac (Based off code from Preocts) for the borrowed cursor handling code.  Old stuff that works great.
+| #define echo mqlog
+#turbo 40
+#include mq2cast_spell_routines.inc
+#include modbot.inc
+#include modmelee.inc
+#include modheal.inc
+#include moddebuff.inc
+#include modevent.inc
+#include modbuff.inc
+#include modcure.inc
+#include modpull.inc
+#include modloot.inc
+#include modmove.inc
+#include wait4rez.inc
+|#include modextra.inc
+#include AAPurchase.inc
+
+| UNCOMMENT THIS LINE BELOW IF YOU WANT TO USE ADVPATH (non plugin)----
+|#include modadvpath.inc
+
+| Uncomment these if you'd like commands to work via group and chat channels.
+| #chat group
+| #chat chat
+ #chat tell
+
+
+
+Sub Main(INI)
+/delay 2 ${Macro.Name.Equal[modbot.mac]}
+/declare MBCommon string outer MBCommon.ini
+/declare MBDebug bool outer FALSE
+/if (${MBDebug}) /multiline ; /echo Macro.RunTime:${Macro.RunTime} - Sub:Main ${INI}
+| /declare RezGiveUpSeconds int 600
+| UNCOMMENT THIS LINE BELOW IF YOU WANT TO USE ADVPATH (non-plugin)----
+|/call InitAPFVars 1 15 20
+| SET TRUE OR FALSE ON LINE BELOW IF YOU WANT TO USE ADVPATH PLUGIN!!----
+/declare AdvPlug bool outer TRUE
+/declare a int local
+/declare b int local
+/declare shrinktries int outer
+/call LoadINIVar Settings IniLocation "* Path to MB_Name.ini file.  example - MBIni/ sets your .ini files in macros/MBIni/MB_Name.ini" IniLocation "${MBCommon}" string
+/if (${IniLocation.Left[1].Equal[*]}) /varset IniLocation
+/declare IniFile string outer ${IniLocation}MB_${Me.Name}
+/if (${Me.Shrouded}) {
+	/docommand ${If[${Select[${Me.Race.Name.Arg[1]},wood,high,dark,dwarf,barbarian,ogre,gnome,human,troll,froglok,halfling,erudite]},/declare RaceName string local ${Me.Level},/declare RaceName string local ${Me.Race}]}
+  /docommand ${If[${INI.Length},/varset IniFile ${IniLocation}MB_${Me.Name}_${INI},/varset IniFile ${IniLocation}MB_${RaceName}_${Me.Class}]}
+} else {
+  /if (${INI.Length}) /varset IniFile ${IniLocation}MB_${Me.Name}_${INI}
+}
+
+/if (!${IniFile.Find[.ini]}) /varset IniFile ${IniFile}.ini
+/call Startup
+/call SetupAdvLootVars
+/call AAInit ${If[${Me.Shrouded},${Me.Race}_${Me.Class}, ]}
+/call LoadACINIVals
+/call LoadAHINIVals
+/call LoadADINIVals
+/call LoadABINIVals
+/call LoadAEINIVals
+/call LoadAPINIVals
+/call LoadAMINIVals
+/call LoadAQINIVals
+/echo
+/echo ModBot v3.499 is starting!!!
+/echo
+/if (!${Defined[CurrLoc]} && !${AdvPlug}) /echo Not finding AdvPath, using MQ2MoveUtils for movements
+/if (!${Defined[AHGem]}) /echo I don't see any heals setup
+/if (!${Defined[ABGem]}) /echo I don't see any buffs setup
+/if (!${Defined[ADGem]}) /echo I don't see any debuffs setup
+/if (!${Defined[AEGem]}) /echo I don't see any events setup
+/if (!${Defined[AHGem]} && !${Defined[ABGem]} && !${Defined[ADGem]}) /echo Well I hope that you're a melee and that it works /wink
+/if (${AdvPlug} && ${AdvPath.Following}) /call AdvPlugCall off
+/doevents flush
+/if (${Window[RespawnWnd].Open} || ${Me.State.Equal[HOVER]}) {
+  /call Event_Slain
+  /call Event_DelayOnZone
+}
+/if (${Ini["${IniFile}",Settings,DeathSlot]}) /multiline ; /ini "${IniFile}" "Settings" "DeathSlot" "FALSE";/bc Death from previous run detected.  Please Look for my Corpse..  Resuming modbot operation.
+/if (${Me.MaxMana}>0) /multiline ; /echo Saving current spell set - ModBot2;/sss ModBot2
+/if (${DoPet} && !${Me.Pet.ID} && ${PetCast.Length}>5) /call PMACheck "p"
+/if (${DoMount} && !${Me.Mount.ID} && ${MountCast.Length}>5) /call PMACheck "m"
+/if (${DoPull}) /mb makecamp
+/if (${Window[SpellBookWnd].Open}) /keypress ctrl+b
+/if (${Me.Shrouded}) /call AAPicker 
+/if (${Ini["${IniFile}",Script-Startup,Commands]}) /call MBScript Startup
+:MainLoop
+/delay 1
+/if (${MBDebug}) /multiline ; /echo Macro.RunTime:${Macro.RunTime} - Sub:Main->MainLoop
+/if (!${Zone.Name.Equal[${ZoneName}]} || (!${Window[RespawnWnd].Open} && !${Me.ID})) /call Event_DelayOnZone
+/if (${Window[RespawnWnd].Open} || !${Me.Shrouded} && !${InvSlot[${chest}].Item.ID} && !${Me.Platinum} && !${InvSlot[pack1].Item.ID} || ${Me.Shrouded} && !${InvSlot[pack1].Item.ID} && (${Me.State.Equal[HOVER]} || ${Me.State.Equal[DEAD]})) /call Event_Slain
+/if (!${MBPause}) {
+  /doevents
+  /if (${Group.MainAssist.ID} && ${Spawn[${Group.MainAssist.ID}].ID} && !${Group.MainAssist.Type.Equal[corpse]}) { 
+    /varset TankName ${Group.MainAssist.Name} 
+  } else /if (${Group.MainTank.ID} && ${Spawn[${Group.MainTank.ID}].ID} && !${Group.MainTank.Type.Equal[corpse]}) { 
+    /varset TankName ${Group.MainTank.Name} 
+  } else /if (${TankName.Length}>2 && (!${Spawn[${TankName}].ID} || ${Spawn[${TankName}].Type.Equal[corpse]})) { 
+     /for b ${Math.Calc[${AllTankName.Count[,]}+1]} downto 1 
+        /if (${Spawn[${AllTankName.Arg[${b},,]}].ID} && !${Spawn[${AllTankName.Arg[${b},,]}].Type.Equal[corpse]}) /varset TankName ${AllTankName.Arg[${b},,]} 
+     /next b 
+  }
+|  /echo /if (${DoPull} && !${APCheckTimer} && ${CampStatus} && !${ACState} && !${Melee.Combat} && !${APAggro}) /call AdvPull
+  /if (${DoPull} && !${APCheckTimer} && ${CampStatus} && !${ACState} && !${Melee.Combat} && !${APAggro}) /call AdvPull
+  /if (${Math.Distance[${Me.Y},${Me.X}:${MakeCampY},${MakeCampX}]}>40 && ${DoPull} && (${APTargetID} || ${ACMATarget}) && ${Spawn[${ACMATarget}].PctHPs}>25 || (${APAggro} && ${APTargetID})) /call CompleteAP
+  /if (${DoMelee} && (${APTargetID} && !${Spawn[${ACMATarget}].ID} || ${SpawnCount[npc radius ${ACLeash} zradius 100]} || ${ACState} && (!${Spawn[${ACMATarget}].ID} || ${Spawn[${ACMATarget}].Type.Equal[corpse]} || ${Spawn[${ACMATarget}].Feigning}))) /call AdvCombat
+  /if (${DoHeals} && ${AHCount} && !${AHCheckTimer}) /call AHHealCheck
+  /if (${Me.Class.ShortName.Equal[BRD]} || (!${Me.Class.ShortName.Equal[BRD]} && (!${Me.Moving} || ${Me.Moving} && ${ACState}))) {
+    /if (${DoDebuffs} && ${ADCount} && !${ADCheckTimer}) /call ADDebuffCheck
+    /if (${DoEvents} && ${AECount} && !${AECheckTimer} && !${Me.Class.ShortName.Equal[BRD]}) /call AEEventCheck
+    /if (${DoBuffs} && ${ABCount} && !${ABCheckTimer} && !${APPullDelay}) /call ABBuffCheck
+    /if (${DoCures} && ${AQCount} && !${AQCheckTimer}) /call AQCureCheck
+  }
+}
+/if (${DoMelee} && (!${Spawn[${NetBots[${TankName}].TargetID}].Type.Equal[pc]} && ${ACState} || ${Spawn[${NetBots[${TankName}].TargetID}].Type.Equal[pc]} && !${ACState} || ${ADMobCount}>1 && ${OffTank} && ${Target.ID}==${NetBots[${TankName}].TargetID})) /call AdvCombat
+/if (!${Melee.Combat} && ${Select[${Me.CombatState},COOLDOWN,RESTING]} && (!${Spawn[${NetBots[${TankName}].TargetID}].Type.Equal[npc]} && ${ACState} || ${Spawn[${NetBots[${TankName}].TargetID}].Type.Equal[npc]} && !${ACState})) /call AdvCombat
+/if (!${ACState} && !${Melee.Combat}) {
+  /if (!${MBPause} && ${DoBuffs} && ${Me.Class.ShortName.Equal[BRD]} && (${Twist.List.NotEqual[${BardRestGems} ]} || !${Twist})) /multiline ; /squelch /stoptwist;/squelch /twist ${BardRestGems}
+  /if (!${Me.Casting.ID} || ${Me.Class.ShortName.Equal[BRD]}) {
+    /call AdvPathCall
+    /doevents
+    /if (!${MBPause} && !${Me.Moving}) {
+      /if (${DoLoot} && ${LootMobs} && (!${ADMobCount} || ${MobsTooClose}<=5)) {
+        /if (${SpawnCount[corpse radius ${CorpseRadius} zradius 100 noalert 25]}) {
+          /call LootMobs
+          }
+        }
+      }
+      /if (${DoMount} && !${Me.Mount.ID} && ${MountCast.Length}>5 && !${ADMobCount}) /call PMACheck "m"
+    }
+  }
+}
+/if (${QueueCount} && ${DoBuffs}) /call DoBuffEvents
+    /if (${DoEvents} && ${AECount} && !${AECheckTimer} && !${Me.Class.ShortName.Equal[BRD]}) /call AEEventCheck
+/doevents
+/if (!${MBPause} && ${DoBuffBot}) /goto :MainLoop
+/if (${MBPause} && ${FollowFlag} && ${Me.Mount.ID}) /dismount
+/if (!${MBPause} && ${DoHeals} && ${AHCount} && !${AHCheckTimer}) /call AHHealCheck
+/if (${Stick.Status.Equal[PAUSED]} && ${DoMelee} && ${ACState} && ${Cast.Status.Equal[I]}) /stick unpause
+/if (!${MBPause} && !${MiscCheckTimer} && !${APPullDelay}) {
+  /varset MiscCheckTimer 1s
+  /if (${Select[${MakeCamp},on]} && ${CampStatus}==2 && ${Me.Moving}) /multiline ; /keypress back;/varset CampStatus 1
+  /if (!${Me.Moving} || ${SpawnCount[npc los radius ${ACLeash} zradius 100]}) /call ADSpawnCheck
+  /if (!${ACState} && !${Melee.Combat} && !${Me.Moving} && (${Me.Class.ShortName.Equal[BRD]} || !${Me.Casting.ID})) {
+    /if (${Select[${MakeCamp},on]} && ${CampStatus}==1 && !${Me.State.Equal[feign]} && !${FollowFlag}) {
+      /multiline ; /if (!${Me.Mount.ID} && ${Me.Sitting}) /sit off;/varset CampStatus 2;/if (${Math.Distance[${Me.Y},${Me.X}:${MakeCamp.AnchorY},${MakeCamp.AnchorX}]}>10) /squelch /makecamp return
+      /delay 2s !${Me.Moving}
+      /if (${Math.Distance[${Me.Y},${Me.X}:${MakeCampY},${MakeCampX}]}>10) /call MBMoveTo ${MakeCampY} ${MakeCampX}
+      /delay 2s !${Me.Moving}
+      /squelch /face Heading ${Math.Calc[${MakeCampD}${If[${Math.Rand[100]}<50,-,+]}${Math.Rand[30]}]}
+      /multiline ; /squelch /keypress ${If[${Math.Rand[100]}<50,right,left]} hold;/delay 2
+      /squelch /keypress ${If[${Math.Rand[100]}<50,right,left]}
+    }
+    /if (!${Me.Invis}) {
+      /if (${DoPet} && !${Me.Pet.ID} && ${PetCast.Length}>5) /call PMACheck "p"
+      /if (${DoMount} && !${Me.Mount.ID} && ${MountCast.Length}>5) /call PMACheck "m"
+      /if (${DoAura} && !${Me.Aura[1].Length} && !${Me.Aura[2].Length} && ${AuraCast.Length}>5 && !${Me.Class.ShortName.Equal[MAG]} || ${Me.Class.ShortName.Equal[MAG]}&& ${DoAura} && ${Me.Pet.ID} && !${Me.PetBuff[${AuraCast.Arg[1,|]} Effect]} && ${Spell[${AuraCast.Arg[1,|]} Effect].StacksPet[0]}) /call PMACheck "a"
+        /if (${DoBuffs} && ${Me.Pet.ID} && ${Me.Pet.Height}>1.4 && ${PetShrinkSpell.Length}>2 && ${shrinktries}<3 && !${Zone.ShortName.Equal[thevoida]} && ${PetShrink}) {
+        	 /varset a ${shrinktries}
+           /if (!${Me.Gem[${PetShrinkSpell.Arg[1,|]}]}) /memorize "${PetShrinkSpell.Arg[1,|]}|${PetShrinkSpell.Arg[2,|]}"
+           /delay 3s ${Me.Gem[${PetShrinkSpell.Arg[1,|]}]}
+           	/call MQ2Cast "${PetShrinkSpell.Arg[1,|]}" "${PetShrinkSpell.Arg[2,|]}" 5s -targetid|${Me.Pet.ID} -maxtries|2
+            /varset shrinktries ${Math.Calc[${a}+1]}
+      	}
+    }
+    /if (${DoPull} && ${APAggro} && (!${APTargetID}||!${Spawn[${APTargetID}].ID})) /varset APAggro 0
+    /if (!${DoBuffs} && ${Me.Class.ShortName.Equal[BRD]} && ${Twist}) /stoptwist
+    /if (${FollowFlag}>=10 && ${FollowFlagZoneDelay}) /varcalc FollowFlag ${FollowFlag}+1
+|    /if (${Window[ConfirmationDialogBox].Open}) /notify ConfirmationDialogBox Yes_Button leftmouseup
+		
+		/if (${Window[AdventureRequestWnd].Open}) /keypress esc
+  }
+  /if (${DoForage} && ${Me.AbilityReady[forage]} && !${Me.Mount.ID}) /multiline ; /sit off;/doability forage;/delay 1s
+  /if (${Cursor.ID}) /call ClearCursor
+  /if (${DoSit} && !${Me.Mount.ID} && !${Me.Moving} && !${SitCheckTimer} && !${Me.State.Equal[feign]} && !${Melee.GotAggro} && (!${ACState} || !${Melee.Combat} || (${ACState} && ${Me.PctMana}<${ACManaPct}) || (!${ACState} && ${Select[${MakeCamp},on]} && ${CampStatus}<2))) /call SitCheck
+|  /call AAPicker
+}
+    /if (${Window[TradeSkillWnd].Child[CombineButton].Enabled} && ${DoCombines} && !${Cursor.ID}) {
+    	/notify TradeskillWnd CombineButton leftmouseup
+    } else {
+    	/if (${DoCombines} && ${Cursor.ID}) /call ClearCursor
+    }
+    /if (${Window[TradeWnd].Open} && !${Window[TradeWnd].MyTradeReady} && !${Cursor.ID} && (${MasterList.Find[${Window[TradeWnd].Child[TRDW_HisName].Text}]} || ${NetBots.Client.Find[${Window[TradeWnd].Child[TRDW_HisName].Text}]})) {
+      /delay 2
+      /notify TradeWnd TRDW_Trade_Button leftmouseup
+    }
+/goto :MainLoop
+/return
