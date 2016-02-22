@@ -16,6 +16,8 @@ Lots of information is available, here are some of the best places to look:
 Wiki: http://www.macroquest2.com/wiki/index.php/ModBot
 Post: http://eqtitan.com/forums/viewtopic.php?f=53&t=1086
 
+The wiki contains links to example ini files per character class which can help you get started.
+
 ## Troubleshooting
 
 Known errors will be noted in this section.
