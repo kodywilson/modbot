@@ -2,6 +2,7 @@
  - Updated README, .gitignore, and added collaboration guidelines.
  - README includes mission statement and outline of the process I intend to follow.
  - Updated MQ2Cast_Spell_Routines.inc from http://www.macroquest2.com/phpBB3/viewtopic.php?f=49&t=19313&hilit=mq2cast_spell_routines
+ - Updated Wait4rez.inc to v2.24 - handles hover state, will go to bind and wait for rez if needed.
 
 06152011 - TMN
  - Fixed line 112 of modbuff.inc for bard auras

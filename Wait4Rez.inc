@@ -1,4 +1,4 @@
-|Wait4rez.inc v2.23  /lootall command and 105 minute timer added.
+|Wait4rez.inc v2.24 - Version for ModBot
 Sub Wait4Rez
 /stick off
 /makecamp off
@@ -7,7 +7,9 @@ Sub Wait4Rez
 } else {
 	/declare RezWaitTimer ${RezGiveUpSeconds}
 }
-/echo Awaiting rez: auto-accepting, and looting my corpse 
+/call CreateTimer RezTimer
+   /if (${Me.State.Equal[HOVER]}) /varset RezTimer 180s
+/echo Awaiting rez: auto-accepting
 :rezmeffs 
 /doevents 
 /if (${RezWaitTimer}<50) /echo ${Math.Calc[${RezWaitTimer}/10]} seconds left to rez before campout.
@@ -19,13 +21,22 @@ Sub Wait4Rez
   /end
 }
 /delay 10s ${Window[ConfirmationDialogBox].Open} 
-/if (!${Window[ConfirmationDialogBox].Open}) /goto :rezmeffs
-/nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup 
-/delay 2s 
-/if (${Window[RespawnWnd].Open}) /nomodkey /notify RespawnWnd RW_OptionsList listselect 2  
-/delay 1s 
-/nomodkey /notify RespawnWnd RW_SelectButton leftmouseup 
-/delay 2s 
+/if (!${Window[ConfirmationDialogBox].Open} && ${RezTimer}>0) /goto :rezmeffs
+/if (!${Window[ConfirmationDialogBox].Open} && !${RezTimer}) {
+      /nomodkey /notify RespawnWnd RW_OptionsList listselect 1
+      /delay 1s
+      /nomodkey /notify RespawnWnd RW_SelectButton leftmouseup
+      /delay 20s
+      }
+/if (${Window[ConfirmationDialogBox].Open}) /nomodkey /notify ConfirmationDialogBox Yes_Button leftmouseup
+   /delay 2s
+   /if (${Window[RespawnWnd].Open}) {
+      /nomodkey /notify RespawnWnd RW_OptionsList listselect 2
+      /delay 1s
+      /nomodkey /notify RespawnWnd RW_SelectButton leftmouseup
+      /delay 2s
+      }
+/if (${Me.State.Equal[HOVER]}) /goto :rezmeffs
 /ini "${IniFile}" "Settings" "DeathSlot" "FALSE"
 /delay 3s !${Window[RespawnWnd].Open}
 /return
