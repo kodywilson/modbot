@@ -1,3 +1,7 @@
+02232016 - Kody
+ - Updated AAPurchase.inc with http://www.macroquest2.com/phpBB3/viewtopic.php?f=49&t=15824&hilit=AAPurchase.inc&start=75
+ - Completed check of all includes and we are now using the latest.
+
 02222016 - Kody
  - Updated README, .gitignore, and added collaboration guidelines.
  - README includes mission statement and outline of the process I intend to follow.
