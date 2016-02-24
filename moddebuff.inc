@@ -64,7 +64,7 @@ Sub LoadADINIVals
       } else /if (${ADGem[${a}].Equal[alt]}) {
       	/if (!${Me.AltAbility[${ADSpell[${a}]}]} && !${Me.Shrouded}) /bc You don't have the ${ADSpell[${a}]} Alt.  Please check ADSpell${a} in your .ini
       }
-      /call LoadINIVar "${Spell[${ADSpell[${a}]}].Name}" "MaxLevel" "100" "MaxLevel${Spell[${ADSpell[${a}]}].ID}" "${MBCommon}" string
+      /call LoadINIVar "${Spell[${ADSpell[${a}]}].Name}" "MaxLevel" "150" "MaxLevel${Spell[${ADSpell[${a}]}].ID}" "${MBCommon}" string
       /if (${CheckTargetDebuffs} && ${Spell[${ADSpell[${a}]}].Duration} && ${Spell[${ADSpell[${a}]}].SpellType.Equal[Detrimental]}) /call LoadINIVar "${Spell[${ADSpell[${a}]}].Name}" "OverwritesID" "| Pipe delimited list of spell ID's this should overwrite - |Number|Number| " "OverWrite${Spell[${ADSpell[${a}]}].ID}" "${MBCommon}" string
 
       /if (!${Defined[Imm${Spell[${ADSpell[${a}]}].ID}]}) /declare Imm${Spell[${ADSpell[${a}]}].ID} string outer

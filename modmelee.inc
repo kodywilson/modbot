@@ -4,7 +4,7 @@
 #Event MobProb "#*#You can't hit them from here#*#"
 #Event PetTargetMez "|${Me.Pet.CleanName}| tells you, 'I am unable to wake#*#"
 #event EnrageStart "#*# has become ENRAGED."
-#event EnrageEnd "#*# is no longer enraged"
+#event EnrageEnd "#*# is no longer enraged."
 
 Sub Event_MobProb
     /if (!${ACMobProbT} && ${Melee.Combat} && ${Me.Standing} && ${Target.ID}==${ACMATarget} && ${Me.Combat} && (!${Me.Casting.ID} || ${Me.Class.ShortName.Equal[brd]})) {
