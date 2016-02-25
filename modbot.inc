@@ -712,8 +712,8 @@ Sub SellCheck(VendorName)
  /varset mItem ${Merchant.Items}
  /delay 2s
  /if (${Merchant.Items}!=${mItem}) /goto :loop
- /for tPack 1 to 8
-   /for tItem 1 to 10
+ /for tPack 1 to 10
+   /for tItem 1 to 40
      /docommand ${If[${InvSlot[pack${tPack}].Item.Container},/varset sItemName ${InvSlot[pack${tPack}].Item.Item[${tItem}]},${If[(${tItem}>1 || !${InvSlot[pack${tPack}].Item.ID}),/varset sItemName NULL,/varset sItemName ${InvSlot[pack${tPack}].Item}]}]}
      /if (${sItemName.NotEqual[NULL]} && ${Ini["${LootIni}","${sItemName.Left[1]}","${sItemName}"].Equal[Sell]}) /call Sell "${sItemName}"
    /next tItem

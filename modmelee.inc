@@ -57,7 +57,7 @@ Sub AdvCombat
 /if (${MBPause}) /return
 /if (${MBDebug}) /multiline ; /echo Macro.RunTime:${Macro.RunTime} - Sub:AdvCombat
 /if (${DoMelee} && !${Melee.Enable} && (${MakeCampY} && ${MakeCampX} && ${Math.Distance[${Me.Y},${Me.X}:${MakeCampY},${MakeCampX}]}<40 || ${Ini["${MBWayPnt}",${Section},WP1].Length}>2 && ${Math.Distance[${Me.Y},${Me.X}:${Ini["${MBWayPnt}",${Section},WP1].Arg[1]},${Ini["${MBWayPnt}",${Section},WP1].Arg[2]}]}<40)) /squelch /melee plugin=1
-/if (${TankName.Equal[${Me.Name}]} && ${Target.Type.Equal[npc]} && ${ACMATarget} && ${Spawn[${ACMATarget}].ID} && !${Spawn[${ACMATarget}].Type.Equal[corpse]}) {
+/if (${TankName.Equal[${Me.Name}]} && (${Target.Type.Equal[npc]} || (${Target.Type.Equal[Object]} && ${Target.Class.Name.Equal[Destructible Object]})) && ${ACMATarget} && ${Spawn[${ACMATarget}].ID} && !${Spawn[${ACMATarget}].Type.Equal[corpse]}) {
 	/if (${ReTargetT} || ${Me.Combat}) /return
   /varset ReTargetT 10s
 }

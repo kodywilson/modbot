@@ -117,7 +117,7 @@ Sub ADSpawnCheck
  /varset npcid ${NearestSpawn[${tNPCCount},any radius ${Radius} zradius 100 noalert ${AlertList}].ID}
  /if (!${npcid}) /goto :CleanseArray
  /multiline ; /varset z ${Spawn[${npcid}].Name};/varset y ${Spawn[${npcid}].Type}
- /if (!${Spawn[${npcid}].LineOfSight} && ${ACMATarget}!=${npcid} || !${z.Length} || !${Spawn[${npcid}].Standing} || ${Select[${y},chest,untargetable,trigger,trap,timer,item,object,banner,campfire,mercenary,pc,mount,aura,corpse,flyer]} || ${Spawn[${npcid}].Body.Name.Equal[object]}) /goto :GetSpawn
+ /if (!${Spawn[${npcid}].LineOfSight} && ${ACMATarget}!=${npcid} || !${z.Length} || !${Spawn[${npcid}].Standing} || ${Select[${y},chest,untargetable,trigger,trap,timer,item,banner,campfire,mercenary,pc,mount,aura,corpse,flyer]} || ${Spawn[${npcid}].Body.Name.Equal[object]}) /goto :GetSpawn
   /if (${Spawn[${npcid}].Master.Type.Equal[pc]} || ${Spawn[${npcid}].Type.Equal[pc]} || (!${Spawn[${npcid}].LineOfSight} && ${Spawn[${npcid}].Distance3D}>25) || ${Spawn[${npcid}].Name.Left[1].Equal[_]} && ${Spawn[${npcid}].CleanName.Length}<2) /goto :GetSpawn
  /if (${ADAggroOnly}) {
     /if ((${FollowFlag} && !${Spawn[${FollowName}].ID}) || (!${Spawn[id ${npcid} noalert 30].ID})) /goto :GetSpawn
