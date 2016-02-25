@@ -1,8 +1,9 @@
 |
 | Modbot.mac
 | Modular Bot macro. This macro lets you specify thresholds for debuffing/healing/events etc.
-| Version 3.1
+| Version 3.5
 | ModBot Birthdate:10/1/2005
+| - Being updated by Kody: 02/23/2016ish
 | - Upkeep by Kroak, but this was started by TooManyNames...
 | - Special thanks to TooManyNames, Fearless, DKAA, and A_Druid_00 (yes, I have directly stolen your code.  :p) And many others I have learned and stolen from.  :)
 | - Thanks also to the writer of Forage.mac (Based off code from Preocts) for the borrowed cursor handling code.  Old stuff that works great.

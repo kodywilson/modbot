@@ -7,6 +7,7 @@ Sub Wait4Rez
 } else {
 	/declare RezWaitTimer ${RezGiveUpSeconds}
 }
+/declare RezTimer timer local 180s
 /call CreateTimer RezTimer
    /if (${Me.State.Equal[HOVER]}) /varset RezTimer 180s
 /echo Awaiting rez: auto-accepting
