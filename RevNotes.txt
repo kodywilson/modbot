@@ -1,3 +1,9 @@
+02252016 - Kody
+ - Updated modbuff.inc with Woobs version from July 20th, 2014.
+ - Fixed timer variable bug in Wait4Rez.inc
+ - Updated moddebuff.inc with Woobs version from 2015.
+ - Bumped up max inventory slots and bag size in modbot.inc
+
 02242016 - Kody
  - Updated modmelee.inc for enrage and moddebuff.inc to raise default MaxLevel.
 

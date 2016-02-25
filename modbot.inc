@@ -533,6 +533,7 @@ Sub Event_Invite(EvtText)
 /if (${Select[${EvtText.Arg[1]},${MasterList}]} || ${NetBots[${EvtText.Arg[1]}].ID}) {
   /if (${Me.Casting.ID}) /delay 10s !${Me.Casting.ID}
   /invite
+  /notify ConfirmationDialogBox CD_Yes_Button leftmouseup
 }
 /return
 
