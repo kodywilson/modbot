@@ -569,8 +569,9 @@ Sub Event_SummonFood
 Sub Event_Invite(EvtText)
 /if (${Select[${EvtText.Arg[1]},${MasterList}]} || ${NetBots[${EvtText.Arg[1]}].ID}) {
   /if (${Me.Casting.ID}) /delay 10s !${Me.Casting.ID}
+  /delay 2s
   /invite
-  /notify ConfirmationDialogBox CD_Yes_Button leftmouseup
+  /if (${Window[ConfirmationDialogBox].Open}) /notify ConfirmationDialogBox CD_Yes_Button leftmouseup
 }
 /return
 
