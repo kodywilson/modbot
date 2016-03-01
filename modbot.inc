@@ -28,6 +28,8 @@
 #Event OutOfStuff "Sorry, but you don't have everything you need for this recipe in your general inventory."
 #Event Broke "#*#you cannot afford#*#"
 #Event Broke "#*#you can't afford#*#"
+#Event ClickVoid "#*#Click void portal#*#"
+#Event Teeky "#*#Get the daily Teek quests#*#"
 
 
 |  #Event CastLnd "#*#
@@ -35,6 +37,41 @@
 #Event EQBC "<#1#> #2#"
 #Event EQBC "[#1#(msg)] #2#"
 #Event EQBC "[MQ2] mb- #2#"
+
+Sub Event_ClickVoid
+  /if ( ${Select[${Zone.ShortName},Potimea]} ) {
+    /doortarget OBJ_VOIDPORTAL
+    /face door
+    /moveto loc ${DoorTarget.Y} ${DoorTarget.X}
+	/delay 10s
+	/click left door
+  }
+/return
+
+Sub Event_Teeky
+  /if ( ${Select[${Zone.ShortName},PoKnowledge]} ) {
+	/delay ${Math.Calc[${Math.Rand[45]}+5]}s
+	/bc [+g+] Getting Teek dailies
+  	/tar Teek
+	/delay 2s
+	/moveto ID
+  	/delay ${Math.Calc[${Math.Rand[10]}+5]}s
+    /say level 85
+    /delay 2s
+    /notify TaskSelectWnd TSEL_AcceptButton leftmouse 1
+	/delay 6s
+	/say alternate
+	/delay 2s
+    /notify TaskSelectWnd TSEL_AcceptButton leftmouse 1
+	/delay 6s
+	/say level 90
+	/delay 2s
+    /notify TaskSelectWnd TSEL_AcceptButton leftmouse 1
+	/delay 6s
+	/itemnotify "Fellowship Registration Insignia" rightmouseup
+	/delay 6s
+  }
+/return
 
 Sub Event_EQBC(EQBCSay,EQBCSender,EQBCCommand)
 | /echo ${EQBCSay} : ${EQBCSender} : ${EQBCCommand}

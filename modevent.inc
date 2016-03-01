@@ -1,7 +1,6 @@
 #Event AECEventA "#*#|${AECustomEvent[1]}|#*#"
 #Event AECEventB "#*#|${AECustomEvent[2]}|#*#"
 #Event AECEventC "#*#|${AECustomEvent[3]}|#*#"
-#Event ClickVoid "#*#Click void portal#*#"
 
 Sub Event_AECEventA
   /call MBScript AECustomEvent1
@@ -13,16 +12,6 @@ Sub Event_AECEventB
 
 Sub Event_AECEventC
   /call MBScript AECustomEvent3
-/return
-
-Sub Event_ClickVoid
-  /if ( ${Select[${Zone.ShortName},Potimea]} ) {
-    /doortarget OBJ_VOIDPORTAL
-    /face door
-    /moveto loc ${DoorTarget.Y} ${DoorTarget.X}
-	/delay 10s
-	/click left door
-  }
 /return
 
 Sub LoadAEINIVals
