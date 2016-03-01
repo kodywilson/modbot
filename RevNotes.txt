@@ -1,6 +1,7 @@
 03012016 - Kody
  - Updated modbot.inc with new Teek Daily and click void portal events.
  - Removed click void portal event from modevent.inc.
+ - Actually fixed Wait4rez.inc this time, removed CreateTimer line.
 
 02252016 - Kody
  - Updated modbuff.inc with Woobs version from July 20th, 2014.
